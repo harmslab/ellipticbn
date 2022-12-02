@@ -2,5 +2,5 @@
 
 [Interactive version found here](https://plotly.com/~Mshavlik/63/)
 
-![](images/testing.png)
+![](images/testing_cbn_interactive.png)
 
