@@ -47,6 +47,6 @@ Calculated ellipticity for each structure on a scale of circular (0) to linear (
 _CB10 wide structures with guests removed_
 ![](images/ellipsoid_example.png)
 
-Calculated ellipticity for each structure on a scale of circular (0) to linear (1)                                                          ![](images/ellipse_ellipticity.png)
+Calculated ellipticity for each structure on a scale of circular (0) to linear (1)                                                                ![](images/ellipse_ellipticity.png)
 
 
