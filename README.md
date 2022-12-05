@@ -15,11 +15,11 @@ _pip install cbn_analysis_
 
 **To run the analysis package on a single file, navigate to the directory with the cbn_analysis script and execute it:**
 (NOTE: if there are spaces in your file name, you will need quotes around the file name)
-![](images/single_file)
+![](images/single_file.png)
 
 
 **The same convention can be used to execute the package on a folder of xyz files**
-![](images/folder_test)
+![](images/folder_test.png)
 
 
 
