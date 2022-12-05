@@ -11,6 +11,16 @@ _pip install cbn_analysis_
 * Next, install the required dependencies by running _pip install -r requirements.txt_
 
 ## How to run the analysis
+### The cbn_analysis package takes a single command line argument: an xyz file containing atom coordinates, or a folder of xyz files containing atom coordinates
+
+**To run the analysis package on a single file, navigate to the directory with the cbn_analysis script and execute it:**
+(NOTE: if there are spaces in your file name, you will need quotes around the file name)
+![](images/single_file)
+
+
+**The same convention can be used to execute the package on a folder of xyz files**
+![](images/folder_test)
+
 
 
 ## How to interpret the output
