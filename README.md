@@ -36,18 +36,16 @@ _pip install cbn_analysis_
 
 To see the interactive version of this plot that gets generated from the script, [Click Here](https://plotly.com/~Mshavlik/63/)
 
-**The user can visually see the ellipticity in the structues and compare them to the measured values in the spreadsheets:**
-CB7 structures from above with guests removed
+**The user can visually see the ellipticity in the structues and compare them to the measured values in the spreadsheets:**                 
+_CB7 structures from above with guests removed_
 ![](images/CB7_circular.png)
 
-Calculated ellipticity for each structure on a scale of circular (0) to linear (1)
-![](images/circular_ellipticity.png)
+Calculated ellipticity for each structure on a scale of circular (0) to linear (1)     ![](images/circular_ellipticity.png)
 
 
-CB10 wide structures with guests removed
+_CB10 wide structures with guests removed_
 ![](images/ellipsoid_example.png)
 
-Calculated ellipticity for each structure on a scale of circular (0) to linear (1)
-![](images/ellipse_ellipticity.png)
+Calculated ellipticity for each structure on a scale of circular (0) to linear (1)     ![](images/ellipse_ellipticity.png)
 
 
