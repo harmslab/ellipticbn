@@ -13,6 +13,7 @@ import os
 
 
 
+
 @dataclass
 class atom_data:
     name: str
@@ -404,14 +405,18 @@ def draw_interactive(filename, points, components, centroids,guests=False):
     fig.update_layout(scene=dict(xaxis=dict(range=xlim),yaxis=dict(range=ylim),zaxis=dict(range=zlim)))
     
     #fig.show()
+
+
+        
+    
     nav = os.path.basename(filename)
     
     if guests:
         fig.write_html(f'./{filename}_data/{nav}_full_rings_with_guests.html')
     else:
         fig.write_html(f'./{filename}_data/{nav}_full_rings_without_guests.html')
-    
 
+    
     return (xlim,ylim,zlim)
 
 
@@ -469,10 +474,14 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
     
     
     component_name = []
+    high_component_name = [] 
     carbons_to_plot = []
-    
+    simple_carbons_to_plot = []
     
     center_ring_components = []
+    
+    unusual_structure = False
+    
     
     for i,comp in enumerate(components):
         distances = []
@@ -501,18 +510,19 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
 
             if min(c_dist_to_o) > 2.95:
                 component_carbons.append(carbon)
-                
+                simple_carbons_to_plot.append(carbon)
+                component_name.append(f'Structure {i+1}')
 
 
         center_ring_components.append(component_carbons)
-
+ 
     
     ### Add conditional here for only doing this step for structures beyond ~20? 24?
     # go through carbon, carbon
     final_component_carbons =[]
     for i, comp in enumerate(center_ring_components):
         c_distances = []
-        
+        fixed_comp = []
         
         for carbon in comp:
             cdist_to_c = []
@@ -536,16 +546,26 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
             
             if 1.50 < min(cdist_to_c) < 1.57:
                 carbons_to_plot.append(carbon)
-                component_name.append(f'Structure {i+1}')
+                fixed_comp.append(carbon)
+                high_component_name.append(f'Structure {i+1}')
             
-        final_component_carbons.append(c_distances)
+        final_component_carbons.append(fixed_comp)
 
 
+    
+    # if too high carbons, dataframe is carbons to plot and high component name. Otherwise its component carbons and component name
+    for comp in center_ring_components:
+        if len(comp) > 20:
+            unusual_structure = True
+    
+    if unusual_structure:
+        component_dataframe = pd.DataFrame(carbons_to_plot,columns=['x','y','z'])
+        component_dataframe['color'] = high_component_name
 
-
-    component_dataframe = pd.DataFrame(carbons_to_plot,columns=['x','y','z'])
-    component_dataframe['color'] = component_name
-
+    else:
+        component_dataframe = pd.DataFrame(simple_carbons_to_plot,columns=['x','y','z'])
+        component_dataframe['color'] = component_name
+        
     d = pd.concat([component_dataframe,data_centroid])
     
   
@@ -555,7 +575,11 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
     nav = os.path.basename(filename)
     fig.write_html(f'./{filename}_data/{nav}_single_rings.html')
 
-    return center_ring_components
+   
+    if unusual_structure:
+        return final_component_carbons
+    else:
+        return center_ring_components
 
 
 
@@ -601,7 +625,7 @@ def calc_write_distances(name,structure_data,single_rings,centroid_data):
     Excel spreadsheet with each sheet representing a different structure and the ellipticity of that 
     structure as the name of the sheet
     """
-    
+
     final_data_list = []
     nav = os.path.basename(name)
     writer = pd.ExcelWriter(f'{name[:-4]}_data/{nav[:-4]}_distance_data.xlsx',engine='xlsxwriter')
@@ -623,7 +647,6 @@ def calc_write_distances(name,structure_data,single_rings,centroid_data):
 
         data_to_write = pd.DataFrame({'Carbons':['C']*len(xvals),'X':xvals,'Y':yvals,
                                       'Z':zvals,'Dist from centroid':distances})
-        
         # Ellipticity calculation
         new = np.array(single_rings[idx])
 
