@@ -25,7 +25,29 @@ _pip install cbn_analysis_
 
 ## How to interpret the output
 
-[Interactive version found here](https://plotly.com/~Mshavlik/63/)
+### Each xyz file analyzed with this package will produce at least 3 pieces of data: 
+* 1 interactive 3D scatter plot with all carbons in the CBn structures visualized 
+* 1 interactive 3D scatter plot with only the central carbon ring of the CBn structures visualized
+* 1 spreadsheet with all of the carbons, their positions, distance to the centroid of the structure, and the measured ellipticity
+
+**In the case of host CBn structures with an internally situated guest structure, an additional 3D graph will be produced with the guests visualized in the structures (see below)**
 
 ![](images/testing_cbn_interactive.png)
+
+To see the interactive version of this plot that gets generated from the script, [Click Here](https://plotly.com/~Mshavlik/63/)
+
+**The user can visually see the ellipticity in the structues and compare them to the measured values in the spreadsheets:**
+CB7 structures from above with guests removed
+![](images/CB7_circular.png)
+
+Calculated ellipticity for each structure on a scale of circular (0) to linear (1)
+![](images/circular_ellipticity.png)
+
+
+CB10 wide structures with guests removed
+![](images/ellipsoid_example.png)
+
+Calculated ellipticity for each structure on a scale of circular (0) to linear (1)
+![](images/ellipse_ellipticity.png)
+
 
