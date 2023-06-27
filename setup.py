@@ -7,12 +7,12 @@ import glob
 
 from setuptools import find_packages, setup
 
-# name of package CBn Crystal Analysis V1
+# name of package ElliptiC
 
 #Package meta-data
 DESCRIPTION= \
 """ Python package for analyzing CBn crystal structures automatically. """
-URL = "https://github.com/harmslab/CBn_Crystal_Analysis_V1"  # temp URL
+URL = "https://github.com/harmslab/ElliptiC"  # temp URL
 EMAIL = "mshavlik@uoregon.edu"
 AUTHOR = "Michael Shavlik"
 REQUIRES_PYTHON = ">=3.7.0"
@@ -27,7 +27,7 @@ with io.open(os.path.join(here,'README.md'),encoding='utf-8') as f:
     
 # Now the part where we do setup?
 setup(
-    name='CBn-Crystal-Analysis-V1',
+    name='ElliptiC',
     version='1.0.0',
     author=AUTHOR,
     author_email=EMAIL,
@@ -35,8 +35,8 @@ setup(
     long_description=full_description,
     url=URL,
     license='MIT',
-    packages=['CBn_analysis'],
-    scripts=glob.glob("CBn_analysis/execute*.py"),
+    packages=['ElliptiC'],
+    scripts=glob.glob("bin/ElliptiC*.py"),
     keywords='CBn; Crystal structure',
     classifiers = ["Development Status :: 3 - Alpha",
                   'Intended Audience :: Science/Research',

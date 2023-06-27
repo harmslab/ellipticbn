@@ -2,10 +2,10 @@
 # coding: utf-8
 
 """
-Command line interface to use the CBn_analysis.run_all
+Command line interface to use the ElliptiC.run_all
 """
 
-from CBn_analysis import run_all
+from ElliptiC import run_all
 import sys
 import os
 import glob

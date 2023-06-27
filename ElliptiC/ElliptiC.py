@@ -276,10 +276,11 @@ def filter_linear(indices, points, components):
         variance = pca.explained_variance_ratio_
         
         ratios = variance[0]/variance[1]
-
+        
         if ratios < 3:
-            trimmed_components.append(comp)
-            trimmed_indices.append(indices[idx])
+            if len(comp) >= 10:
+                trimmed_components.append(comp)
+                trimmed_indices.append(indices[idx])
             
     for point_pair in points:
         for tcomp in trimmed_components:
@@ -460,18 +461,8 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
     3d scatterplot and saves as HTML file
     """
     
-    
    
-    
-    data_centroid = pd.DataFrame(centroids,columns=['x','y','z'])
-    centroid_colors = []
-    
-    for i,centroid in enumerate(centroids):
-        centroid_colors.append(f'Centroid {i+1}')
 
-    data_centroid['color'] = centroid_colors    
-    
-    
     
     component_name = []
     high_component_name = [] 
@@ -481,8 +472,8 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
     center_ring_components = []
     
     unusual_structure = False
-    
-    
+   
+    remove_cent_index = []
     for i,comp in enumerate(components):
         distances = []
         component_carbons = []
@@ -507,19 +498,45 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
                 c_dist_to_o.append(d)
 
             distances.append(min(c_dist_to_o))
-
-            if min(c_dist_to_o) > 2.95:
+            
+            # Only keep carbons that are far from oxygen atoms. This bit brings us to a single ring
+            if min(c_dist_to_o) > 2.9:
                 component_carbons.append(carbon)
                 simple_carbons_to_plot.append(carbon)
                 component_name.append(f'Structure {i+1}')
+                
+        # If NO carbons passed our check, then remove this structure from the data
+        if len(component_carbons) > 0:
+            center_ring_components.append(component_carbons)
+        elif len(component_carbons) == 0:
+            remove_cent_index.append(i)
+    
+    kept_centroids = []
+    kept_cent_colors = []
+    
+    # remove centroids associated with structures that didn't pass our check
+    for idx,cent in enumerate(centroids):
+        if idx not in remove_cent_index:
+            kept_centroids.append(centroids[idx])
+            kept_cent_colors.append(idx)
+    
+    data_centroid = pd.DataFrame(kept_centroids,columns=['x','y','z'])
+    centroid_colors = []
+    
+    for c in kept_cent_colors:
+        centroid_colors.append(f'Centroid {c+1}')
 
-
-        center_ring_components.append(component_carbons)
- 
+    data_centroid['color'] = centroid_colors 
+  
+   
     
     ### Add conditional here for only doing this step for structures beyond ~20? 24?
     # go through carbon, carbon
     final_component_carbons =[]
+    components_to_return = []
+    
+    # This is for unusual structures (i.e. if there are extra carbons that didn't get filtered out before)
+    # We will run this every time, but only use this data if the conditional below it is met
     for i, comp in enumerate(center_ring_components):
         c_distances = []
         fixed_comp = []
@@ -542,44 +559,82 @@ def draw_interactive_single(filename, components, oxygens, centroids,limits):
                     
                     d = np.sqrt(cxcalc+cycalc+czcalc)
                     cdist_to_c.append(d)
-            c_distances.append(min(cdist_to_c))
+            if len(cdist_to_c) > 0:
+                c_distances.append(min(cdist_to_c))
             
-            if 1.50 < min(cdist_to_c) < 1.57:
-                carbons_to_plot.append(carbon)
-                fixed_comp.append(carbon)
-                high_component_name.append(f'Structure {i+1}')
+            # This is a tricky carbon-carbon distance filter
+            # The dist between carbons in our CBn ring is so consistent, that if we identify carbons 
+            # that do not fall in this distance, remove them (i.e. should be extra)
+                if 1.493 < min(cdist_to_c) < 1.58:
+                    carbons_to_plot.append(carbon)
+                    fixed_comp.append(carbon)
+                    high_component_name.append(f'Structure {i+1}')
+
+        # Only keeping components that are fixed (had extra carbons removed)
+        if len(fixed_comp) > 0:
+            components_to_return.append(fixed_comp)
+            for i in fixed_comp:
+                final_component_carbons.append(i)
             
-        final_component_carbons.append(fixed_comp)
 
 
     
     # if too high carbons, dataframe is carbons to plot and high component name. Otherwise its component carbons and component name
-    for comp in center_ring_components:
+    # If ANY component is weird, we to set the unusual structure to True 
+    # If we have too few carbons in a single component (< CB5) or too high (> CB10)
+    for i,comp in enumerate(center_ring_components):
         if len(comp) > 20:
             unusual_structure = True
+        elif len(comp) < 10:
+            unusual_structure = True
+
+            
     
     if unusual_structure:
-        component_dataframe = pd.DataFrame(carbons_to_plot,columns=['x','y','z'])
+        component_dataframe = pd.DataFrame(final_component_carbons,columns=['x','y','z'])
         component_dataframe['color'] = high_component_name
 
     else:
         component_dataframe = pd.DataFrame(simple_carbons_to_plot,columns=['x','y','z'])
         component_dataframe['color'] = component_name
         
-    d = pd.concat([component_dataframe,data_centroid])
+        
+
     
-  
+    # This bit of code trims down the centroids to match the number of components so we don't have extra centroids
+    struct_ints = []
+    cents_to_use = []
+    cents_to_use_no_color = []
+    
+    for v in component_dataframe['color']:
+        num = int(v.split()[1])
+        if num not in struct_ints:
+            struct_ints.append(num)
+    
+    for row,val in data_centroid.iterrows():
+        cent_num = int(val['color'].split()[1])
+        if cent_num in struct_ints:
+            cents_to_use.append([val['x'],val['y'],val['z'],val['color']])
+            cents_to_use_no_color.append((val['x'],val['y'],val['z']))
+
+            
+    finished_cents = pd.DataFrame(cents_to_use,columns=['x','y','z','color'])
+    
+    d = pd.concat([component_dataframe,finished_cents])
+    
+    
+    
     fig = px.scatter_3d(d,x='x',y='y',z='z',color='color')
     fig.update_layout(scene=dict(xaxis=dict(range=limits[0]),yaxis=dict(range=limits[1]),zaxis=dict(range=limits[2])))
     #fig.show()
     nav = os.path.basename(filename)
     fig.write_html(f'./{filename}_data/{nav}_single_rings.html')
 
-   
+
     if unusual_structure:
-        return final_component_carbons
+        return components_to_return,cents_to_use_no_color
     else:
-        return center_ring_components
+        return center_ring_components,cents_to_use_no_color
 
 
 
@@ -629,14 +684,15 @@ def calc_write_distances(name,structure_data,single_rings,centroid_data):
     final_data_list = []
     nav = os.path.basename(name)
     writer = pd.ExcelWriter(f'{name[:-4]}_data/{nav[:-4]}_distance_data.xlsx',engine='xlsxwriter')
+    counter_track = 0
+    summary_to_write = [name[:-4]]
     
-    for idx, structure in enumerate(structure_data):
+    for idx, structure in enumerate(single_rings):
         distances = []
         xvals = []
         yvals = []
         zvals = []
         for i in range(len(structure)):
-            
             d = np.sqrt(sum((np.array(structure[i])-np.array(centroid_data[idx]))**2))
             distances.append(np.round(d,4))
             
@@ -648,25 +704,51 @@ def calc_write_distances(name,structure_data,single_rings,centroid_data):
         data_to_write = pd.DataFrame({'Carbons':['C']*len(xvals),'X':xvals,'Y':yvals,
                                       'Z':zvals,'Dist from centroid':distances})
         # Ellipticity calculation
-        new = np.array(single_rings[idx])
-
+        if len(single_rings) > 1:
+            new = np.array(single_rings[idx])
+        else:
+            new = np.array(single_rings)[0]
+            
+        
+        
         pca = PCA(n_components=2)
         pcomp = pca.fit(new)
 
         variance = pca.explained_variance_ratio_
 
         ellipticity = np.round((variance[0]-variance[1])/variance[0],2)
+        summary_to_write.append(ellipticity)
         # end ellipticity calculation
         
-        data_to_write.to_excel(writer,sheet_name=f'Ellipticity {idx+1} - {ellipticity}',index=False)
-        
-        final_data_list.append(data_to_write)
-        
+        if len(single_rings) > 1:
+            data_to_write.to_excel(writer,sheet_name=f'Ellipticity {idx+1} - {ellipticity}',index=False)
+            final_data_list.append(data_to_write)
+        else:
+            if not counter_track:
+                data_to_write.to_excel(writer,sheet_name=f'Ellipticity {idx+1} - {ellipticity}',index=False)
+                final_data_list.append(data_to_write)
+                counter_track += 1
+            
     
     writer.save()   #### GOING TO DEPRECATE. NEED CHANGED
     compiled_data = pd.concat(final_data_list)
     
-    return compiled_data, final_data_list
+    columns_for_summary = ['File name']
+    for i,e in enumerate(summary_to_write[1:]):
+        columns_for_summary.append(f'Ellipticity {i+1}')
+    
+
+    summary_to_write = pd.DataFrame(summary_to_write,index=columns_for_summary)
+    
+    return compiled_data, final_data_list,summary_to_write.T
+
+
+def append_df_to_excel(df, excel_path):
+    # Quick function just for summary file
+    df_excel = pd.read_excel(excel_path)
+    result = pd.concat([df_excel, df], ignore_index=True)
+    result.to_excel(excel_path, index=False)
+
 
 
 
@@ -687,6 +769,8 @@ def run_all(f):
 
     xyz_data = parse_XYZ(f)
 
+    print(f'Analyzing {os.path.basename(xyz_data.name)} ...')
+    
     if not os.path.exists(f'{xyz_data.name[:-4]}_data'):
         os.mkdir(f'{xyz_data.name[:-4]}_data')
 
@@ -708,9 +792,65 @@ def run_all(f):
         d = draw_interactive(xyz_data.name[:-4],p,c,prelim_cents,guests=True)
         
     lims = draw_interactive(xyz_data.name[:-4],tp,tc,cents)
-    f = draw_interactive_single(xyz_data.name[:-4],tc,oxyz,cents,lims)
-
-    full, compiled_data = calc_write_distances(xyz_data.name,tc,f,cents)
     
-    return
+    
+    
+    
+    # a check for proper final single ring length
+    possible_lengths = [30,36,42,48,60]
+    possible_single_lengths = [10,12,14,16,20]
+    correct_component_lengths = [int(len(i)/3) for i in tc]
+    
+ 
+    
+    ############################################
+    
+    f,new_cents = draw_interactive_single(xyz_data.name[:-4],tc,oxyz,cents,lims)
+    
+
+    
+    finalized_centroids = []
+    finalized_components_full = []
+    finalized_components_single = []
+    
+    
+    for i,v in enumerate(f): #For each single ring component, only keep ones that match the 3-ring structure carbon #
+        if len(v) in possible_single_lengths:
+            if correct_component_lengths[i]*3 in possible_lengths:
+                
+                if correct_component_lengths[i] == len(v):
+                    finalized_centroids.append(new_cents[i])
+                    finalized_components_full.append(tc[i])
+                    finalized_components_single.append(v)
+                    
+            # Not ideal - in the case of a host with a guest that didn't get removed, just add the single ring anyway
+            elif correct_component_lengths[i]*3 not in possible_lengths:
+                print(f'WARNING: Possible structure filtering error. Manually check single ring figure for {os.path.basename(xyz_data.name)}')
+                finalized_centroids.append(new_cents[i])
+                finalized_components_full.append(tc[i])
+                finalized_components_single.append(v)
+    
+   
+    if len(finalized_components_full) > 0:
+    
+        full, compiled_data,summary = calc_write_distances(xyz_data.name,finalized_components_full,finalized_components_single,
+                                                           finalized_centroids)
+
+
+        #output summary file and make directory
+        if not os.path.exists(f'summary_file'):
+            os.mkdir(f'summary_file')
+            writer = pd.ExcelWriter(f'summary_file/summary.xlsx',engine='xlsxwriter')
+            summary.to_excel(writer,sheet_name=f'Sheet 1',index=False)
+            writer.save()
+
+        else:
+            append_df_to_excel(summary, "summary_file/summary.xlsx")
+    
+        print('Completed!\n')
+    else:
+        print(f'Unable to calculate ellipticity for any structure due to inaccurate carbon isolation for {os.path.basename(xyz_data.name)}\n')
+
+    
+    return xyz_data.name,tc,f,cents
 
