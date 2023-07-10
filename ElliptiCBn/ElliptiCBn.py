@@ -730,7 +730,7 @@ def calc_write_distances(name,structure_data,single_rings,centroid_data):
                 counter_track += 1
             
     
-    writer.save()   #### GOING TO DEPRECATE. NEED CHANGED
+    writer.close()   #### GOING TO DEPRECATE. NEED CHANGED
     compiled_data = pd.concat(final_data_list)
     
     columns_for_summary = ['File name']
@@ -842,7 +842,7 @@ def run_all(f):
             os.mkdir(f'summary_file')
             writer = pd.ExcelWriter(f'summary_file/summary.xlsx',engine='xlsxwriter')
             summary.to_excel(writer,sheet_name=f'Sheet 1',index=False)
-            writer.save()
+            writer.close()
 
         else:
             append_df_to_excel(summary, "summary_file/summary.xlsx")
