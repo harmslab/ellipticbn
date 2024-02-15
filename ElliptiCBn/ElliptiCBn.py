@@ -552,8 +552,36 @@ def plot_results(atom_df,
                  min_molecule_size=10,
                  pca_vector_list=None):
     """
-    Plot the results of an ElliptiCBn calculation. 
+    Plot structures resulting from an ElliptiCBn calculation. Plots heavy atoms
+    and calculated ellipses. 
     
+    Parameters
+    ----------
+    atom_df : pandas.DataFrame
+        dataframe holding atoms with x,y,z coordinates. If ellipses are to be 
+        drawn, it must have a 'cycle' column as well. 
+    html_file : str, optional
+        if specified, write the plotly result to an html file
+    bond_cutoff_dist : float, default=1.8
+        when drawing molecular structures, use this bond length to draw bonds.
+        (Bonds are super rough -- all this code does is check distance. It does
+        not pay attention to numbers of bonds, etc.)
+    plot_structures : bool, default=True
+        draw molecular structures (atoms/bonds)
+    plot_cycles : bool, default=True
+        draw calculated ellipses
+    min_molecule_size : int, default=10
+        only draw molecules that have more than min_molecule_size atoms. Useful
+        for removing solvent, random ions, etc.
+    pca_vector_list : list, optional
+        list of 5x3 PCA array returned by get_ellipticity (one array for each
+        ellipse). Used to draw ellipse a and b vectors. If not specified, do 
+        not draw vectors. 
+
+    Returns
+    -------
+    fig : plotly.graph_objects.Figure 
+        plotly figure holding plot
     """
 
     python_file = os.path.abspath(__file__)
