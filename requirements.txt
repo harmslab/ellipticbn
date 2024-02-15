@@ -1,6 +1,5 @@
 numpy>=1.10
 networkx
-dataclasses
 scikit-learn
 plotly
 pandas 
