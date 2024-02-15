@@ -26,9 +26,9 @@ with io.open(os.path.join(here,'README.md'),encoding='utf-8') as f:
     full_description = '\n' + f.read()
 
 packages = find_packages()
-package_data = {"ElliptiCBn":["ElliptiCBn/data/*.csv",
-                              "ElliptiCBn/data/*.txt",
-                              "notebooks/*.ipynb"]}
+package_data = {"":["data/*.csv",
+                    "data/*.txt",
+                    "notebooks/*.ipynb"]}
     
 # Now the part where we do setup
 setup(

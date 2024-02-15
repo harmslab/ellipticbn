@@ -558,6 +558,7 @@ def plot_results(atom_df,
 
     python_file = os.path.abspath(__file__)
     package_dir = os.path.abspath(os.path.join(os.path.dirname(python_file),
+                                               "..",
                                                "data"))
     
     all_gos = []    
