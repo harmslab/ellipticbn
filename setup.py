@@ -25,7 +25,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with io.open(os.path.join(here,'README.md'),encoding='utf-8') as f:
     full_description = '\n' + f.read()
 
-packages = find_packages(exclude=('tests',))
+packages = find_packages()
 package_data = {"ElliptiCBn":["ElliptiCBn/*.csv",
                               "ElliptiCBn/*.txt",
                               "notebooks/*.ipynb"]}
@@ -41,7 +41,8 @@ setup(
     url=URL,
     license='MIT',
     packages=packages,
-    scripts=glob.glob("bin/ElliptiCBn*"),
+    package_data=package_data,
+    scripts=glob.glob("bin/*"),
     keywords='CBn; cucurbituril; host; guest; chemistry; molecule; science; analysis; crystal structure ',
     classifiers = ["Development Status :: 3 - Alpha",
                   'Intended Audience :: Science/Research',
@@ -49,4 +50,5 @@ setup(
                   'Programming Language :: Python :: 3.8',
                   'Programming Language :: Python :: 3.9',
                   'Programming Language :: Python :: 3.10',
-                  'Programming Language :: Python :: 3.11'])
+                  'Programming Language :: Python :: 3.11'],
+    zip_safe=False)

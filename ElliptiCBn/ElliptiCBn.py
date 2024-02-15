@@ -551,6 +551,10 @@ def plot_results(atom_df,
                  plot_cycles=True,
                  min_molecule_size=10,
                  pca_vector_list=None):
+    """
+    Plot the results of an ElliptiCBn calculation. 
+    
+    """
 
     python_file = os.path.abspath(__file__)
     package_dir = os.path.dirname(python_file)
@@ -713,132 +717,5 @@ def plot_results(atom_df,
 
 
 
-# xxxxx
-def run_all(filename,
-            bond_dist=2.5,
-            aspect_ratio_filter=3,
-            oxygen_dist_cutoff=2.9,
-            min_num_carbons=10,
-            max_num_carbons=20,
-            min_cycle_cc_bond_length=1.3,
-            max_cycle_cc_bond_length=1.7,
-            summary_file="summary.csv",
-            overwrite=False):
-    """
-    Identify the macrocycles present in an xyz coordinate file. 
-    
-    Parameters
-    ----------
-    filename : str or list
-        xyz file name (or list of xyz files) to read
-    bond_dist : float, default=2.5
-        any atoms closer than bond distance (in angstroms) are identified as 
-        part of a single molecule
-    aspect_ratio_filter : float, default=3
-        reject any identified cycles that have a PCA aspect ratio greater than
-        aspect_ratio_filter. An aspect ratio of 1 corresponds to a square; an
-        aspect ratio of 10 would be long and skinny. 
-    oxygen_dist_cutoff : float, default=2.9
-        when selecting the central cucurbituril macrocycle, identify carbons by
-        removing any carbon closer than oxygen_dist_cutoff to an oxygen
-    min_num_carbons : int, default=10
-        reject any macrocycle with a central cycle that has less than 
-        min_num_carbons
-    max_num_carbons : int, default=10
-        reject any macrocycle with a central cycle that has more than 
-        max_num_carbons
-    min_cycle_cc_bond_length: float, default=1.3
-        minimum length to identify cc bonds in the macrocycle
-    max_cycle_cc_bond_length: float, default=1.7
-        maximum length to identify cc bonds in the macrocycle
-    summary_file : str, default="summary.csv"
-        write all cycles to this single summary file if there is more than one 
-        xyz file specified. 
-    overwrite : bool, default=False
-        overwrite existing output files
-    """
-
-    # Decide whether we have a single file or set of files coming in
-    filenames = []
-    if hasattr(filename,"__iter__"):
-        if issubclass(type(filename),str):
-            filenames.append(filename)
-        else:
-            for f in filename:
-                filenames.append(f)
-
-    # If more than one file, make sure the summary file is present
-    if len(filenames) > 1:
-        out_ext = summary_file.split(".")[-1]
-        if out_ext not in ["xlsx","csv"]:
-            err = f"summary_file {summary_file} must have a .xlsx or .csv extension\n"
-            raise ValueError(err)
-
-        if os.path.exists(summary_file):
-            if not overwrite:
-                err = f"summary file '{summary_file}' already exists\n"
-                raise FileExistsError(err)
-            else:
-                os.remove(summary_file)
-
-    # Go through each file
-    dfs = []
-    for filename in filenames:
-
-        # Check output csv and html files
-        file_root = os.path.basename(filename)
-
-        csv_file = f"{file_root}.csv"
-        if os.path.exists(csv_file):
-            if not overwrite:
-                err = f"output file '{csv_file}' already exists\n"
-                raise FileExistsError(err)
-            else:
-                os.remove(csv_file)
-    
-        html_file = f"{file_root}.html"
-        if os.path.exists(html_file):
-            if not overwrite:
-                err = f"output file '{html_file}' already exists\n"
-                raise FileExistsError(err)
-            else:
-                os.remove(html_file)
-        
-        # Get macrocycles
-        atom_df = get_macrocycles(filename,
-                                  bond_dist=bond_dist,
-                                  aspect_ratio_filter=aspect_ratio_filter,
-                                  oxygen_dist_cutoff=oxygen_dist_cutoff,
-                                  min_num_carbons=min_num_carbons,
-                                  max_num_carbons=max_num_carbons,
-                                  min_cycle_cc_bond_length=min_cycle_cc_bond_length,
-                                  max_cycle_cc_bond_length=max_cycle_cc_bond_length)
-        
-        # Get ellipticities and write to csv
-        ellipticities, pca_vectors = get_ellipticity(atom_df)
-        ellipticities.to_csv(csv_file,index=False)
-
-        # Plot results 
-        fig = plot_results(atom_df,
-                           html_file,
-                           pca_vector_list=pca_vectors)
-        
-        # Record for summary file
-        ellipticities["file"] = filename
-        dfs.append(ellipticities)
-
-    # If more than one filename,write to output
-    if len(dfs) > 1:
-        out_df = pd.concat(dfs,ignore_index=True)
-        if out_ext == "xlsx":
-            out_df.to_excel(summary_file,index=False)
-        elif out_ext == "csv":
-            out_df.to_csv(summary_file,index=False)
-        else:
-            err = "`out_ext` should be xlsx or csv\n"
-            raise ValueError(err)
-
-        
-        
 
         
