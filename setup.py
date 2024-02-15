@@ -42,6 +42,7 @@ setup(
     license='MIT',
     packages=packages,
     package_data=package_data,
+    include_package_data=True,
     scripts=glob.glob("bin/*"),
     keywords='CBn; cucurbituril; host; guest; chemistry; molecule; science; analysis; crystal structure ',
     classifiers = ["Development Status :: 3 - Alpha",
