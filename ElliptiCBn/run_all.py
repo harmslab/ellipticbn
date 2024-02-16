@@ -6,7 +6,6 @@ from .core import get_macrocycles
 from .core import get_ellipticity
 
 import pandas as pd
-from tqdm.auto import tqdm
 
 import os
 
@@ -133,7 +132,7 @@ def run_all(filename,
 
     # Go through each file
     dfs = []
-    for filename in tqdm(filenames):
+    for filename in filenames:
 
         # Check output csv and html files
         file_root = os.path.basename(filename)
