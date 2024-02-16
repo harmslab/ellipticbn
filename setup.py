@@ -12,12 +12,12 @@ from setuptools import setup
 
 #Package meta-data
 DESCRIPTION= \
-""" Python package for analyzing ellipticity in CBn crystal structures automatically. """
+""" Python package for analyzing ellipticity in CBn crystal structures. """
 URL = "https://github.com/harmslab/ElliptiCBn"  # temp URL
 EMAIL = "mshavlik@uoregon.edu"
 AUTHOR = "Michael Shavlik"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -33,7 +33,7 @@ package_data = {"":["ElliptiCBn/data/*.csv",
 # Now the part where we do setup
 setup(
     name='ElliptiCBn',
-    version='1.2.0',
+    version=VERSION,
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
@@ -44,7 +44,7 @@ setup(
     package_data=package_data,
     include_package_data=True,
     scripts=glob.glob("bin/*"),
-    keywords='CBn; cucurbituril; host; guest; chemistry; molecule; science; analysis; crystal structure ',
+    keywords='CBn; cucurbituril; host; guest; chemistry; molecule; science; analysis; crystal structure',
     classifiers = ["Development Status :: 3 - Alpha",
                   'Intended Audience :: Science/Research',
                   'Programming Language :: Python :: 3.7'

@@ -3,6 +3,8 @@
 <br />
 
 ## Run on Google Colab
+Run the program in the cloud without installing any software. 
+
 <a href="https://githubtocolab.com/harmsm/ElliptiC/blob/main/notebooks/ElliptiCBn.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 
@@ -11,10 +13,11 @@
 
 _pip install ElliptiCBn_
 
-**If you would rather not use pip and prefer installing source, the installation of the package can be done by the following:**
-* Clone this git repository to your local machine
-* In the cloned repository, install ElliptiCBn through _python -m pip install . vv_ 
-* Next, install the required dependencies by running _pip install -r requirements.txt_
+**To install from source:**
+
+* `git clone https://github.com/harmslab/ElliptiC.git`
+* `cd Elliptic`
+* `python -m pip install . -vv`
 
 <br />
 
@@ -32,23 +35,28 @@ _pip install ElliptiCBn_
 <br />
 
 ## How the package works
-### Below is a diagram of the analysis steps the software completes on any given file
+### We analyze ellipticity using seven steps
 ![](images/pipeline_image.svg)
 
-### 1. In a given XYZ file, extract the coordinates of all carbon atoms (and oxygen atoms used later on in the analysis).
-### 2. Identify strongly connected components to differentiate between host and guest structures.
-### 3. Remove the guest structure since we only care about calculating ellipticity of the host.
-### 4. Using proximity to oxygen atoms, remove the top and bottom rings of the hosts for accurate ellipticity calculation.
-### 5 & 6. Using a Principal Components Analysis, calculate the variance along both major axes of the host ring. The ellipticity is thus (Vax1-Vax2)/Vax1 where Vax1 is the variance on the longest axis (length) and Vax2 is the variance on the second-longest axis (width). 
-### 7. Output graphs of both the single ring hosts and the full host-guest structures, as well as a spreadsheet with the calculated ellipticity for each structure.
+1. Extract the coordinates of all heavy (non-hydrogen) atoms from an xyz file. 
+
+2. Identify separate molecules by finding strongly-connected components. 
+
+3. Identify candidate hosts by filtering on aspect ratio, which differentiates between long, skinny molecules and short, fat molecules. 
+
+4. Using the location of oxygen atoms on the molecule, identify the central macrocycle. Its identity is further validated by the number of carbons and their connectivity. 
+4. Use a Principal Component Analysis to calculate the variance along both major axes of the host ring. 
+6. Calculate ellipticity. This is done by two methods:
+   1.  *pca_ellip*: $(V_{ax1}-V_{ax2})/V_{ax1}$ where $V_{ax1}$ is the variance on the longest axis (length) and $V_{ax2}$​​ is the variance on the second-longest axis (width).  
+   2. *orig_ellip*: Use centroids.... xx 
+7. Generate outputs, which include annotated structures and a spreadsheet with ellipticities. 
 
 <br />
 <br />
 
-## How to interpret the output
+## Output
 
-### Each xyz file analyzed with this package will produce at least 3 pieces of data: 
-* 1 interactive 3D scatter plot with all carbons in the CBn structures visualized 
+* Html file
 * 1 interactive 3D scatter plot with only the central carbon ring of the CBn structures visualized
 * 1 spreadsheet with all of the carbons, their positions, distance to the centroid of the structure, and the measured ellipticity
 
@@ -71,5 +79,4 @@ _CB10 wide structures with guests removed_
 
 Calculated ellipticity for each structure on a scale of circular (0) to linear (1)  
 ![](images/ellipse_ellipticity.png)
-
 

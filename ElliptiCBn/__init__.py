@@ -1,5 +1,6 @@
 
-from .ElliptiCBn import get_macrocycles
-from .ElliptiCBn import get_ellipticity
-from .ElliptiCBn import plot_results
+from .core import get_macrocycles
+from .core import get_ellipticity
+from .core import plot_results
+from .run_all import run_all
 
