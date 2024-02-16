@@ -6,6 +6,7 @@ from .core import get_macrocycles
 from .core import get_ellipticity
 
 import pandas as pd
+from tqdm.auto import tqdm
 
 import os
 
@@ -92,6 +93,10 @@ def run_all(filename,
             for f in filename:
                 filenames.append(f)
 
+    if len(filenames) == 0:
+        err = "No file(s) specified\n"
+        raise ValueError(err)
+
     # If output_dir already exists...
     if os.path.exists(output_dir):
 
@@ -128,7 +133,7 @@ def run_all(filename,
 
     # Go through each file
     dfs = []
-    for filename in filenames:
+    for filename in tqdm(filenames):
 
         # Check output csv and html files
         file_root = os.path.basename(filename)
