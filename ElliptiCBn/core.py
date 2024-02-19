@@ -671,19 +671,31 @@ def plot_results(atom_df,
         with open(palette_txt) as f:
             color_palette = [c.strip() for c in f.readlines()]
         color_palette = [c for c in color_palette if c != ""]
-        
+
+        # Get cycles        
         cycle_counter = 0
         cycles = np.unique(atom_df["cycle"])
         cycles = cycles[np.logical_not(np.isnan(cycles))]
         cycles.sort()
+
+        # Expand color palette unless there are too many cycles
+        num_repeats = int(np.ceil(len(cycles)/len(color_palette)))
+        if num_repeats < 1:
+            num_repeats = 1
+        color_palette = color_palette*num_repeats
+
+        # Go through each cycle
         for cycle in cycles:
     
+            # Get cycle dataframe and coord
             cycle_df = atom_df.loc[atom_df.cycle == cycle,:]    
             cycle_xyz = np.array(cycle_df.loc[:,["x","y","z"]])
             
+            # Get cycle in order of nodes
             nodes = cycle_df.index[_order_nodes(cycle_xyz=cycle_xyz)]
             cycle_df = cycle_df.loc[nodes,:]
 
+            # Create graph object corresponding to cycle 
             cycle_go = go.Scatter3d(name=f"cycle {int(cycle)}",
                                     x=cycle_df.x,
                                     y=cycle_df.y,
@@ -693,19 +705,24 @@ def plot_results(atom_df,
                                           "color":color_palette[cycle_counter]})
             all_gos.append(cycle_go)
             
+            # If a pca vector is passed in, draw them
             if pca_vector_list is not None:
                 
                 pca_vectors = pca_vector_list[cycle_counter]
-
                 vector_coord = [[],[],[]]
+
+                # For each line to draw...
                 for i in range(4):
+
+                    # for each cartesian coordinate...
                     for j in range(3):
                         
+                        # Record coordinates
                         vector_coord[j].append(pca_vectors[i+1,j])
                         vector_coord[j].append(pca_vectors[0,j])
                         vector_coord[j].append(None)
                 
-                        # Create graphical object for bonds
+                        # Create graphical object for pca
                         vector_go = go.Scatter3d(name=None,
                                                  x=vector_coord[0],
                                                  y=vector_coord[1],
@@ -720,7 +737,7 @@ def plot_results(atom_df,
                 
             cycle_counter += 1
                 
-                
+    # create the figure with the graph objects
     fig = None
     if len(all_gos) > 0:
 
@@ -738,6 +755,7 @@ def plot_results(atom_df,
                           yaxis_visible=False,
                           zaxis_visible=False)
 
+    # Save html if requested
     if html_file is not None:
         print(f"Saving plot to {html_file}",flush=True)
         fig.write_html(html_file)
