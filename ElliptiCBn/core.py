@@ -226,6 +226,8 @@ def get_central_cycle(component,
     if size % 2 == 0:
         if size < min_num_carbons or size > max_num_carbons:
             return None
+    else:
+        return None
         
     return central_cycle
 
@@ -410,7 +412,6 @@ def get_macrocycles(filename,
         molecules.append(atom_df.loc[heavy_index[c],:])
         atom_df.loc[heavy_index[c],"molecule"] = i
         atom_df.loc[heavy_index[c],"molec_size"] = len(c)
-        
 
     # Go through each molecule
     cycle_counter = 0
@@ -466,6 +467,8 @@ def get_macrocycles(filename,
             # No cycle found that matches our search criteria
             if central_cycle is None:
                 continue
+
+            print(central_cycle)
 
             # Record that the atoms in question are part of this particular cycle
             idx = atom_df.index[carbon_df.index[central_cycle]]
