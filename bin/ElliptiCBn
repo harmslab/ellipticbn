@@ -1,40 +1,85 @@
-#!/usr/bin/env python3
-# coding: utf-8
-
+#!/usr/bin/env python
 """
-Command line interface to use the ElliptiCBn.run_all
+Command line interface for ElliptiCBn. 
 """
 
 from ElliptiCBn import run_all
+
 import sys
-import os
-import glob
-
-__usage__ = "No xyz file or folder of xyz files specified. \n \n Please specify either an xyz file or folder of xyz files"
-
-def main(argv=None):
+import inspect
+import argparse
+import re
+        
+def main(argv=None,description=None):
+    """
+    Run ellipticbn, building command line arguments based on docstring and
+    argument datatypes. 
+    """
    
-    try:
-        file_input = sys.argv[1]
-    except IndexError:
-        err = __usage__
-        
-        raise ValueError(err)
-        
-    if os.path.isfile(file_input):
-        file_input = [file_input]
-        
-    elif os.path.isdir(file_input):
-        file_input = glob.glob(os.path.join(file_input,"*.xyz"))
-        
-    else:
-        err = __usage__
-        
-        raise ValueError(err)
-        
-    for f in file_input:
-        run_all(f)   # execute all functions and analyze xyz file
-    
-       
+    fcn = run_all
+    optional_arg_types = {}
+
+    if argv is None:
+        argv = sys.argv[1:]
+
+    # Get program name
+    prog = "ElliptiCBn"
+
+    # Get description
+    if description is None:
+        description = dict(inspect.getmembers(fcn))["__doc__"]
+    description = re.sub(":code:","",description)
+
+    # Build parser
+    parser = argparse.ArgumentParser(prog=prog,
+                                     description=description,
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    # Build parser arguments using signature of fcn
+    param = inspect.signature(fcn).parameters
+    for p in param:
+
+        if p == "filename":
+            parser.add_argument(p,nargs="+")
+            continue
+
+        # If no default specified, make required and move on.
+        if param[p].default is param[p].empty:
+            parser.add_argument(p)
+            continue
+
+        # For default is None args, parse as optional_arg_types or str
+        if param[p].default is None:
+            try:
+                arg_type = optional_arg_types[p]
+            except KeyError:
+                arg_type = str
+
+        # Otherwise, just grab the type
+        else:
+            arg_type = type(param[p].default)
+
+        # bool
+        kwargs = {}
+        if arg_type is bool:
+            if param[p].default is True:
+                kwargs["action"] = "store_false"
+            else:
+                kwargs["action"] = "store_true"
+
+        # any other argument type
+        else:
+            kwargs["type"] = arg_type
+            kwargs["default"] = param[p].default
+
+        parser.add_argument(f"--{p}",**kwargs)
+
+    # Parse args
+    args = parser.parse_args(argv)
+
+    # Call function with fcn_args
+    ret = fcn(**args.__dict__)
+
+
 if __name__ == "__main__":
     main()

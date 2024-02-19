@@ -1,0 +1,5 @@
+include requirements.txt
+include ElliptiCBn/data/
+include ElliptiCBn/data/*.csv
+include ElliptiCBn/data/*.txt
+include notebooks/*.ipynb
