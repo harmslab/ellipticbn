@@ -468,8 +468,6 @@ def get_macrocycles(filename,
             if central_cycle is None:
                 continue
 
-            print(central_cycle)
-
             # Record that the atoms in question are part of this particular cycle
             idx = atom_df.index[carbon_df.index[central_cycle]]
             atom_df.loc[idx,"cycle"] = cycle_counter
