@@ -57,7 +57,7 @@ def parse_xyz(filename):
 
 
 def get_network_components(xyz_data,
-                           bond_dist=2.5):
+                           bond_dist=2.8):
     """
     Use networkx to identify individual molecules in the file. 
     Each atom is a node that is connected to other atoms if the 
@@ -147,11 +147,11 @@ def filter_aspect_ratio(component,
 def get_central_cycle(component,
                       carbon_xyz,
                       oxygen_xyz,
-                      oxygen_dist_cutoff=2.9,
+                      oxygen_dist_cutoff=3.2,
                       min_num_carbons=10,
                       max_num_carbons=20,
-                      min_cycle_cc_bond_length=1.3,
-                      max_cycle_cc_bond_length=1.7):
+                      min_cycle_cc_bond_length=1.0,
+                      max_cycle_cc_bond_length=2.0):
     """
     Extract the indices of carbons corresponding to the central cycle in a 
     cucurbituril macrocycle. 
@@ -343,13 +343,13 @@ def calc_ellipticity(cycle_xyz):
     
     
 def get_macrocycles(filename,
-                    bond_dist=2.5,
+                    bond_dist=2.8,
                     aspect_ratio_filter=3,
-                    oxygen_dist_cutoff=2.9,
+                    oxygen_dist_cutoff=3.2,
                     min_num_carbons=10,
                     max_num_carbons=20,
-                    min_cycle_cc_bond_length=1.3,
-                    max_cycle_cc_bond_length=1.7):
+                    min_cycle_cc_bond_length=1.0,
+                    max_cycle_cc_bond_length=2.0):
     """
     Identify the macrocycles present in an xyz coordinate file. 
     
