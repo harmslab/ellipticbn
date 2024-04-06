@@ -7,6 +7,7 @@ import sklearn
 from sklearn.decomposition import PCA 
 import plotly.graph_objects as go
 import networkx as nx 
+import MDAnalysis as mda
 
 # typical scientific computing dependencies
 import numpy as np
@@ -15,222 +16,6 @@ import pandas as pd
 # standard library
 import os
 
-def parse_xyz(filename):
-    """
-    Parse an xyz file and return a dataframe with all atoms. 
-    
-    Parameters
-    ----------
-    filename : str
-        filename of xyz file to load and parse
-    
-    Returns
-    -------
-    atom_df : pandas.DataFrame
-        dataframe with all atoms in xyz file. has 'atom_type' carbon with atom
-        and x,y,z columns with coordinates. 
-    """
-
-    # dictionary to hold atom coordinates as lists of lists
-    out_dict = {"atom_type":[],
-                "x":[],
-                "y":[],
-                "z":[]}
-
-    line_counter = 0
-    with open(filename) as f:
-        for line in f:
-
-            # Skip first two lines
-            line_counter += 1
-            if line_counter <= 2:
-                continue
-
-            # If first entry is C or O, record coordinates as floats
-            col = line.split()
-            out_dict["atom_type"].append(col[0])
-            out_dict["x"].append(float(col[1]))
-            out_dict["y"].append(float(col[2]))
-            out_dict["z"].append(float(col[3]))
-
-    return pd.DataFrame(out_dict)
-
-
-def get_network_components(xyz_data,
-                           bond_dist=2.8):
-    """
-    Use networkx to identify individual molecules in the file. 
-    Each atom is a node that is connected to other atoms if the 
-    distance to a nearby carbon is less than the specified bond distance. 
-    By default, this bond distance is set to 3 angstroms. Thus, strongly
-    connected components (structures) are atoms that are all connected by less 
-    than bond_dist atoms. 
-    
-    Parameters
-    ----------
-    xyz_data: numpy.ndarray 
-        2-d numpy array containing the xyz coords of all carbon atoms in file
-    bond_dist : float, default=2.5
-        Maximum angstrom distance to define connected carbons
-    
-    Returns
-    -------
-    idx_list: list of ints
-        Contains list of numbers for carbons in each component      
-    points: list of tuples
-        Contains pairs of carbon xyz coordinates that are directly connected
-    components: list
-        List of lists, with a list for each component identified. xyz points
-        are stored as tuples in each component list
-    """
-    
-    dist_matrix = sklearn.metrics.pairwise_distances(xyz_data)
-
-    G = nx.DiGraph()
-    for i in range(len(xyz_data)):
-        G.add_node(i,coord=xyz_data[i])
-
-    for i in range(len(G.nodes)):
-        for j in range(1,len(G.nodes)):
-            if dist_matrix[i,j] < bond_dist:
-                G.add_edge(i,j)
-                G.add_edge(j,i)
-                
-    components = nx.strongly_connected_components(G)
-    component_list = [np.array(list(c),dtype=int) for c in components]
-
-    return component_list
-
-
-def filter_aspect_ratio(component,
-                        atom_xyz,
-                        pca_variance_ratio=3):
-    """
-    Use the aspect ratio of structures to identify plane-like versus rod-like
-    structures. Use a principal component analysis to remove structures with
-    high variance in only one axis. 
-    
-    Parameters
-    ----------
-    component : numpy.ndarray 
-        array of indices corresponding to this component on atom_xyz
-    atom_xyz : numpy.ndarray
-        array of coordinates. first dimension can be indexed by component, 
-        second dimension is length 3 and holds x, y, and z. 
-    pca_variance_ratio : float, default=3
-        keep components where the ratio of pca1/pca2 is < pca_variance_ratio.
-
-    Returns
-    -------
-    passes : bool
-        True if the component has an aspect ratio less than pca_variance_ratio; 
-        False otherwise.
-    """
-    
-    # Get component coordinates
-    component_xyz = atom_xyz[component]
-
-    # Do 2-dimensional PCA on the component
-    pca = PCA(n_components=2)
-    pca = pca.fit(np.array(component_xyz))
-    
-    # Calculate aspect ratio for the two components. 
-    variance = pca.explained_variance_ratio_
-    ratios = variance[0]/variance[1]
-    
-    if ratios < pca_variance_ratio:
-        return True
-    
-    return False
-
-
-def get_central_cycle(component,
-                      carbon_xyz,
-                      oxygen_xyz,
-                      oxygen_dist_cutoff=3.2,
-                      min_num_carbons=10,
-                      max_num_carbons=20,
-                      min_cycle_cc_bond_length=1.0,
-                      max_cycle_cc_bond_length=2.0):
-    """
-    Extract the indices of carbons corresponding to the central cycle in a 
-    cucurbituril macrocycle. 
-
-    Parameters
-    ----------
-    component : numpy.ndarray 
-        array of indices corresponding to this component on atom_xyz
-    carbon_xyz : numpy.ndarray
-        array of carbon coordinates. first dimension can be indexed by
-        component, second dimension is length 3 and holds x, y, and z. 
-    oxygen_xyz : numpy.ndarray
-        array of oxygen coordinates. 
-    oxygen_dist_cutoff : float, default=2.9
-        when selecting the central cucurbituril macrocycle, identify carbons by
-        removing any carbon closer than oxygen_dist_cutoff to an oxygen
-    min_num_carbons : int, default=10
-        reject any macrocycle with a central cycle that has less than 
-        min_num_carbons
-    max_num_carbons : int, default=10
-        reject any macrocycle with a central cycle that has more than 
-        max_num_carbons
-    min_cycle_cc_bond_length: float, default=1.3
-        minimum length to identify cc bonds in the macrocycle
-    max_cycle_cc_bond_length: float, default=1.7
-        maximum length to identify cc bonds in the macrocycle
-
-    Returns
-    -------
-    cycle : numpy.ndarray or None
-        returns array of indexes corresponding to central carbon cycle. if no
-        cycle is found passing the filter parameters, return None. 
-    """
-
-    # Get distances between all component carbons and all oxygens
-    component_xyz = carbon_xyz[component]
-    co_dist = sklearn.metrics.pairwise_distances(component_xyz,
-                                                 oxygen_xyz)
-    
-    # Create boolean mask holding carbons that are more than oxygen_dist_cutoff
-    # away from the nearest oxygen
-    to_keep = np.zeros(len(component),dtype=bool)
-    for i in range(len(component)):
-        min_co_dist = np.min(co_dist[i,:])
-        if min_co_dist > oxygen_dist_cutoff:
-            to_keep[i] = True
-
-    # Central cycle consists of carbons relatively distant from oxygen
-    central_cycle = component[to_keep]
-    central_cycle_xyz = carbon_xyz[central_cycle]
-    if len(central_cycle_xyz) == 0:
-        return None
-
-    # Get distances between all carbons in the central cycle
-    cc_dist = sklearn.metrics.pairwise_distances(central_cycle_xyz)
-
-    # Create boolean mask holding carbons that have a single bond to a neighbor
-    to_keep = np.zeros(len(central_cycle),dtype=bool)
-    for i in range(len(central_cycle)):
-
-        d = cc_dist[i,:]
-        min_cc_dist = np.ma.masked_equal(d,0,copy=False).min()
-        if min_cycle_cc_bond_length < min_cc_dist and min_cc_dist < max_cycle_cc_bond_length:
-            to_keep[i] = True
-
-    # Filter central cycle based on atom-atom distances
-    central_cycle = central_cycle[to_keep]
-
-    # Final check of size. Should be an even number of carbons between min_
-    # and max_num_carbons
-    size = len(central_cycle)
-    if size % 2 == 0:
-        if size < min_num_carbons or size > max_num_carbons:
-            return None
-    else:
-        return None
-        
-    return central_cycle
-
 def _order_nodes(cycle_xyz):
     """
     Create an array with indexes for a cycle in continuous order based on 
@@ -238,10 +23,10 @@ def _order_nodes(cycle_xyz):
     with have length len(cycle_xyz) + 1, with the first and last entries 
     being identical. If you traverse the array from beginning to end, you 
     traverse the cycle step-by-step. Both the starting node and direction 
-    (clockwise vs. anticlockwise0 are arbitrary. 
+    (clockwise vs. anticlockwise) are arbitrary. 
     """
 
-    # Get euclidean distances between all points, then set diagnol to 
+    # Get euclidean distances between all points, then set diagonal to 
     # np.nan
     D = sklearn.metrics.pairwise_distances(cycle_xyz)
     D[np.diag_indices_from(D)] = np.nan
@@ -303,7 +88,7 @@ def calc_ellipticity(cycle_xyz):
     pca_ellipticity = (variance[0]-variance[1])/variance[0]
 
     # Get centroid and all distances to the centroid
-    centroid =  np.sum(cycle_xyz,axis=0)/cycle_xyz.shape[0]
+    centroid =  np.mean(cycle_xyz,axis=0)
     all_dists = np.sqrt(np.sum((cycle_xyz - centroid)**2,axis=1))
         
     # Get fraction to strech each axis
@@ -341,15 +126,11 @@ def calc_ellipticity(cycle_xyz):
     
     return pca_ellipticity, pca_vectors, original_ellipticity
     
+
     
 def get_macrocycles(filename,
-                    bond_dist=2.8,
-                    aspect_ratio_filter=3,
-                    oxygen_dist_cutoff=3.2,
                     min_num_carbons=10,
-                    max_num_carbons=20,
-                    min_cycle_cc_bond_length=1.0,
-                    max_cycle_cc_bond_length=2.0):
+                    max_num_carbons=20):
     """
     Identify the macrocycles present in an xyz coordinate file. 
     
@@ -357,26 +138,12 @@ def get_macrocycles(filename,
     ----------
     filename : str
         xyz file name to read
-    bond_dist : float, default=2.5
-        any atoms closer than bond distance (in angstroms) are identified as 
-        part of a single molecule
-    aspect_ratio_filter : float, default=3
-        reject any identified cycles that have a PCA aspect ratio greater than
-        aspect_ratio_filter. An aspect ratio of 1 corresponds to a square; an
-        aspect ratio of 10 would be long and skinny. 
-    oxygen_dist_cutoff : float, default=2.9
-        when selecting the central cucurbituril macrocycle, identify carbons by
-        removing any carbon closer than oxygen_dist_cutoff to an oxygen
     min_num_carbons : int, default=10
         reject any macrocycle with a central cycle that has less than 
         min_num_carbons
     max_num_carbons : int, default=10
         reject any macrocycle with a central cycle that has more than 
         max_num_carbons
-    min_cycle_cc_bond_length: float, default=1.3
-        minimum length to identify cc bonds in the macrocycle
-    max_cycle_cc_bond_length: float, default=1.7
-        maximum length to identify cc bonds in the macrocycle
     
     Returns
     -------
@@ -389,104 +156,137 @@ def get_macrocycles(filename,
     
     print(f'Analyzing {filename}.',flush=True)
 
-    # Read all atoms
-    atom_df = parse_xyz(filename)
-    
-    # Prep dataframe for new data
-    atom_df["cycle"] = np.nan
-    atom_df["molecule"] = np.nan
-    atom_df["molec_size"] = np.nan
+    allowed_atoms = ["C","N","O","H"]
+    chno_lines = []
+    non_chno_dict = {"atom_type":[],
+                     "x":[],
+                     "y":[],
+                     "z":[]}
+    with open(filename) as f:
 
-    # Make an array of heavy atom coordinates
-    heavy_index = atom_df.index[atom_df["atom_type"] != "H"]
-    heavy_atom_xyz = np.array(atom_df.loc[heavy_index,
-                                          ["x","y","z"]])
+        line_counter = -1
+        for line in f:
+            line_counter += 1
+            if line_counter == 1:
+                second_line = line
 
-    # Get strongly connected components for atoms closer than bond_dist
-    components = get_network_components(heavy_atom_xyz,
-                                        bond_dist=bond_dist)
-    
-    # Create a list of molecules (list of heavy atom dataframes)
-    molecules = []
-    for i, c in enumerate(components):
-        molecules.append(atom_df.loc[heavy_index[c],:])
-        atom_df.loc[heavy_index[c],"molecule"] = i
-        atom_df.loc[heavy_index[c],"molec_size"] = len(c)
-
-    # Go through each molecule
-    cycle_counter = 0
-    for m in molecules:
-
-        # Grab carbons and oxygens
-        carbon_df = m.loc[m["atom_type"] == "C",:]
-        oxygen_df = m.loc[m["atom_type"] == "O",:]
-
-        # Create arrays of carbon and oxygen coordinates 
-        carbon_xyz = np.array(carbon_df.loc[:,["x","y","z"]])
-        oxygen_xyz = np.array(oxygen_df.loc[:,["x","y","z"]])
-
-        # Too few carbons
-        if len(carbon_xyz) < min_num_carbons:
-            continue
-
-        # No oxygens. Can't be right molecule type. 
-        if len(oxygen_xyz) == 0:
-            continue
-
-        # Get strongly connected carbon components within molecule. This may
-        # be different than total strongly connected components because we 
-        # dropepd some heavy atoms. 
-        components = get_network_components(carbon_xyz,
-                                            bond_dist=bond_dist)
-
-        # For each component
-        for comp in components:
-
-            # component is too tiny to even analyse
-            if len(comp) < min_num_carbons:
+            if line_counter < 2:
                 continue
 
-            # Filter on aspect ratio (find components that are plane-like rather
-            # than rod-like).
-            if not filter_aspect_ratio(comp,
-                                       atom_xyz=carbon_xyz,
-                                       pca_variance_ratio=aspect_ratio_filter):
+            col = line.split()
+            if col[0] in allowed_atoms:
+                chno_lines.append(line)
                 continue
+
+            non_chno_dict["atom_type"].append(col[0])
+            non_chno_dict["x"].append(float(col[1]))
+            non_chno_dict["y"].append(float(col[2]))
+            non_chno_dict["z"].append(float(col[3]))
+    
+    chno_lines.insert(0,f"{len(chno_lines)}\n")
+    chno_lines.insert(1,second_line)
+
+    with open("tmp-xyz.xyz","w") as f:
+        f.write("".join(chno_lines))
+
+    univ = mda.Universe("tmp-xyz.xyz",
+                        guess_bonds=True)
+
+    os.remove("tmp-xyz.xyz")
+
+    out = {"atom_index":[],
+           "atom_type":[],
+           "x":[],
+           "y":[],
+           "z":[],
+           "neighbors":[],
+           "neigh_pattern":[]}
+
+    G = nx.DiGraph()
+
+    for i, a in enumerate(univ.atoms):
+
+        G.add_node(i)
         
-            
-            # Get the central cycle. 
-            central_cycle = get_central_cycle(comp,
-                                              carbon_xyz=carbon_xyz,
-                                              oxygen_xyz=oxygen_xyz,
-                                              oxygen_dist_cutoff=oxygen_dist_cutoff,
-                                              min_num_carbons=min_num_carbons,
-                                              max_num_carbons=max_num_carbons,
-                                              min_cycle_cc_bond_length=min_cycle_cc_bond_length,
-                                              max_cycle_cc_bond_length=max_cycle_cc_bond_length)
+        element = a.element
+        x, y, z = a.position
+        neighbors = a.bonded_atoms.indices
+        neighbor_elem = univ.atoms[neighbors].elements.copy()
+        neighbor_elem.sort()
 
-            # No cycle found that matches our search criteria
-            if central_cycle is None:
-                continue
+        for n in neighbors:
+            G.add_edge(i,n)
 
-            # Record that the atoms in question are part of this particular cycle
-            idx = atom_df.index[carbon_df.index[central_cycle]]
-            atom_df.loc[idx,"cycle"] = cycle_counter
-            cycle_counter += 1
+        out["atom_index"].append(i)
+        out["atom_type"].append(element)
+        out["x"].append(x)
+        out["y"].append(y)
+        out["z"].append(z)
+        out["neighbors"].append(neighbors)
+        out["neigh_pattern"].append("".join(neighbor_elem))
+
+    atom_df = pd.DataFrame(out)
+    molecules = nx.strongly_connected_components(G)
+    molecules = [np.array(list(m),dtype=int) for m in molecules]
+
+    atom_df["molecule"] = -1
+    atom_df["molec_size"] = -1
+    for i, m in enumerate(molecules):
+        atom_df.loc[m,"molecule"] = i
+        atom_df.loc[m,"molec_size"] = len(m)
+
+    search_patterns = ["CHNN","CNN"]
+    cnn_atom_df = atom_df.loc[atom_df["neigh_pattern"].isin(search_patterns),:]
+    macrocycles = np.unique(cnn_atom_df["molecule"])
+
+    cycle_counter = 0
+    atom_df["cycle"] = np.nan
+    for m in macrocycles:
+
+        m_df = cnn_atom_df.loc[cnn_atom_df["molecule"] == m,:]
+
+        size = len(m_df)
+
+        if size % 2 != 0:
+            continue
+        if size < min_num_carbons or size > max_num_carbons:
+            continue
+
+        atom_df.loc[m_df.atom_index,"cycle"] = cycle_counter
+
+        cycle_counter += 1
+    
+    # Dataframe with coordinates of non chno atoms            
+    non_chno_df = pd.DataFrame(non_chno_dict)
+    non_chno_df["neighbors"] = [np.array([],dtype=int) for _ in non_chno_df.index]
+    non_chno_df["neigh_pattern"] = ""
+    non_chno_df["molecule"] = -1
+    non_chno_df["molec_size"] = -1
+    non_chno_df["cycle"] = np.nan
+    non_chno_df["atom_index"] = np.arange(len(non_chno_df.index),dtype=int) + np.max(atom_df["atom_index"])
+    non_chno_df = non_chno_df.loc[:,atom_df.columns]
+
+    # Record all atoms, both chno (atom_df) and the ones we ignored earlier
+    if len(non_chno_df.index) > 0:
+        atom_df = pd.concat([atom_df,non_chno_df],ignore_index=True)
     
     print(f"{cycle_counter} macrocycles identified.")
     print("",flush=True)
 
     return atom_df
 
-def get_ellipticity(atom_df):
+def get_ellipticity(atom_df,guest_search_radius=3):
     """
-    Calculate the ellipticity for all atoms in atom_df.
+    Calculate the ellipticity and some quality control for all atoms in atom_df.
     
     Parameters
     ----------
     atom_df : pandas.DataFrame
         pandas dataframe holding x,y,z coordiantes of atoms with 
         macrocycles identified in the 'cycle' column 
+    guest_search_radius : float, default=4
+        look for guest atoms within this radius (in angstroms) of the atom 
+        centroid.
     
     Returns
     -------
@@ -496,6 +296,8 @@ def get_ellipticity(atom_df):
         (number of carbon atoms in the central cycle), 
         "pca_ellip" (ellipticity calculated by PCA), and 
         "orig_ellip" (ellipticity calculated using original method
+        "nearby_atoms" (number of atoms within guest_search_cutoff of the centroid)
+        "bad_protons" (number of carbons with protons facing into the cycle rather than out)
     pca_vectors : list
         list of 5x3 numpy arrays defining ellipse vectors corresponding
         to ellipse a and b. 
@@ -506,6 +308,8 @@ def get_ellipticity(atom_df):
     pca_ellipticities = []
     pca_vectors = []
     orig_ellipticites = []
+    nearby_atoms = []
+    bad_protons = []
     
     # Get sorted array of non-na cycles to look for
     cycle_ids = np.unique(atom_df["cycle"])
@@ -518,24 +322,81 @@ def get_ellipticity(atom_df):
     # Go through each cycle
     for cycle in cycle_ids:
 
+        cycle_df = atom_df.loc[atom_df["cycle"] == cycle,:]
+
         # Extract coordinates
-        cycle_xyz = np.array(atom_df.loc[atom_df["cycle"] == cycle,
-                                        ["x","y","z"]])
+        cycle_xyz = np.array(cycle_df.loc[:,["x","y","z"]])
         
-        # Calcualte ellipticities
+        # Calculate ellipticities
         ellip, vec, original_ellip = calc_ellipticity(cycle_xyz)
+
+        # Get centroid
+        centroid =  np.mean(cycle_xyz,axis=0)
         
+        # Get atom that are not part of the molecule with the cycle but are near
+        # the cycle centroid -- possible guests
+        molec = np.unique(atom_df.loc[atom_df["cycle"] == cycle,"molecule"])[0]
+        non_cycle_xyz = np.array(atom_df.loc[atom_df["molecule"] != molec,
+                                             ["x","y","z"]])
+        if len(non_cycle_xyz) == 0:
+            nearby = 0
+        else:
+            D = sklearn.metrics.pairwise_distances([centroid],non_cycle_xyz)
+            nearby = np.sum(D < guest_search_radius)
+
+        # Get protons from cycle -- should be facing away from center (negative
+        # dot product).
+        dot_products = []
+        for idx in cycle_df.index:
+            
+            # Grab a carbon from the cycle
+            this_row = cycle_df.loc[idx,:]
+            c_vec = np.array(this_row.loc[["x","y","z"]])
+
+            # Get length-one vector going from carbon to centroid
+            c_to_cent = centroid - c_vec
+            vec_length = np.sqrt(np.sum(c_to_cent**2))
+            c_to_cent = c_to_cent/vec_length
+
+            # go through the carbon neighbors
+            neighbors = this_row["neighbors"]
+            for n in neighbors:
+
+                # If a neighbor id a hydrogen
+                neigh_row = atom_df.loc[n,:]
+                if neigh_row["atom_type"] == "H":
+
+                    # Get a length-one vector going from carbon to hydrogen
+                    h_vec = np.array(neigh_row.loc[["x","y","z"]])
+                    c_to_h = h_vec - c_vec
+                    vec_length = np.sqrt(np.sum(c_to_h**2))
+                    c_to_h = c_to_h/vec_length
+
+                    # Dot product. Will be negative if facing opposite ways,
+                    # positive if facing same way
+                    dot_products.append(np.dot(c_to_cent,c_to_h))
+
+                    continue
+            
+        # bad hydrogens have positive dot products
+        dot_products = np.array(dot_products)
+        bad_h = np.sum(dot_products > 0)
+
         # Record results
         cycle_sizes.append(len(cycle_xyz))
         pca_ellipticities.append(ellip)
         pca_vectors.append(vec)
         orig_ellipticites.append(original_ellip)
+        nearby_atoms.append(nearby)
+        bad_protons.append(bad_h)
     
     # Create output 
     out_dict = {"id":cycle_ids,
                 "size":cycle_sizes,
                 "pca_ellip":pca_ellipticities,
-                "orig_ellip":orig_ellipticites}
+                "orig_ellip":orig_ellipticites,
+                "nearby_atoms":nearby_atoms,
+                "bad_protons":bad_protons}
     results =  pd.DataFrame(out_dict)
     
     print("Results:")
@@ -547,14 +408,11 @@ def get_ellipticity(atom_df):
 
 def plot_results(atom_df,
                  html_file=None,
-                 bond_cutoff_dist=1.8,
                  plot_structures=True,
                  plot_cycles=True,
-                 min_molecule_size=10,
                  pca_vector_list=None):
     """
-    Plot structures resulting from an ElliptiCBn calculation. Plots heavy atoms
-    and calculated ellipses. 
+    Plot structures resulting from an ElliptiCBn calculation. 
     
     Parameters
     ----------
@@ -563,17 +421,10 @@ def plot_results(atom_df,
         drawn, it must have a 'cycle' column as well. 
     html_file : str, optional
         if specified, write the plotly result to an html file
-    bond_cutoff_dist : float, default=1.8
-        when drawing molecular structures, use this bond length to draw bonds.
-        (Bonds are super rough -- all this code does is check distance. It does
-        not pay attention to numbers of bonds, etc.)
     plot_structures : bool, default=True
         draw molecular structures (atoms/bonds)
     plot_cycles : bool, default=True
         draw calculated ellipses
-    min_molecule_size : int, default=10
-        only draw molecules that have more than min_molecule_size atoms. Useful
-        for removing solvent, random ions, etc.
     pca_vector_list : list, optional
         list of 5x3 PCA array returned by get_ellipticity (one array for each
         ellipse). Used to draw ellipse a and b vectors. If not specified, do 
@@ -592,7 +443,6 @@ def plot_results(atom_df,
     all_gos = []    
     if plot_structures:
 
-
         atom_csv = os.path.join(package_dir,"atom-colors.csv")
         color_df = pd.read_csv(atom_csv)
         hex_colors = dict(zip([e.upper() for e in color_df["elem"]],color_df["hex"]))
@@ -608,8 +458,6 @@ def plot_results(atom_df,
         atom_df = atom_df.copy()
         atom_df["color"] = atom_colors
         
-        atom_df = atom_df.loc[atom_df["molec_size"] >= min_molecule_size,:]
-        
         atom_go = go.Scatter3d(name=None,
                                x=atom_df.x,
                                y=atom_df.y,
@@ -620,21 +468,21 @@ def plot_results(atom_df,
                                        "color":atom_df.color})
         all_gos.append(atom_go)
 
+        bond_list = []
+        for idx in atom_df.index:
+            row = atom_df.loc[idx,:]
+            atom_i = int(row["atom_index"])
+            
+            for atom_j in row["neighbors"]:
+                bond = [atom_i,int(atom_j)]
 
-        # Get distances between all atoms
+                bond.sort()
+                bond_list.append(tuple(bond))
+
+        bonds = list(set(bond_list))
+
+        # Get all coordinates
         xyz = np.array(atom_df.loc[:,["x","y","z"]])
-        dists = sklearn.metrics.euclidean_distances(xyz)
-        
-        # Bonds are atoms closer than cutoff. This will be symmetrical about 
-        # diagonal matrix. So take only bonds where the index for 0 is less than
-        # the index for 1: above the diagonal. 
-        bonds = np.argwhere(dists < bond_cutoff_dist)
-        bonds = bonds[bonds[:,0] < bonds[:,1]]
-        
-        # Remove spurious HH bonds
-        hh_mask = np.logical_and(np.array(atom_df.loc[atom_df.index[bonds[:,0]],"atom_type"] == "H"),
-                                 np.array(atom_df.loc[atom_df.index[bonds[:,1]],"atom_type"] == "H"))
-        bonds = bonds[np.logical_not(hh_mask)]
 
         # Create bond coordinates 
         bond_coord = [[],[],[]]

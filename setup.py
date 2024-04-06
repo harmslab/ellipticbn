@@ -17,7 +17,7 @@ URL = "https://github.com/harmslab/ElliptiCBn"  # temp URL
 EMAIL = "mshavlik@uoregon.edu"
 AUTHOR = "Michael Shavlik"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = "1.2.1"
+VERSION = "2.0.0"
 
 here = os.path.abspath(os.path.dirname(__file__))
 
