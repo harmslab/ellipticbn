@@ -37,13 +37,9 @@ def _file_check(some_file,
 
 
 def run_all(filename,
-            bond_dist=2.5,
-            aspect_ratio_filter=3,
-            oxygen_dist_cutoff=2.9,
             min_num_carbons=10,
             max_num_carbons=20,
-            min_cycle_cc_bond_length=1.3,
-            max_cycle_cc_bond_length=1.7,
+            guest_search_radius=3,
             summary_file="summary.xlsx",
             output_dir=".",
             overwrite=False):
@@ -54,27 +50,16 @@ def run_all(filename,
     ----------
     filename : str or list
         xyz file name (or list of xyz files) to read
-    bond_dist : float, default=2.5
-        any atoms closer than bond distance (in angstroms) are identified as 
-        part of a single molecule
-    aspect_ratio_filter : float, default=3
-        reject any identified cycles that have a PCA aspect ratio greater than
-        aspect_ratio_filter. An aspect ratio of 1 corresponds to a square; an
-        aspect ratio of 10 would be long and skinny. 
-    oxygen_dist_cutoff : float, default=2.9
-        when selecting the central cucurbituril macrocycle, identify carbons by
-        removing any carbon closer than oxygen_dist_cutoff to an oxygen
     min_num_carbons : int, default=10
         reject any macrocycle with a central cycle that has less than 
         min_num_carbons
-    max_num_carbons : int, default=10
+    max_num_carbons : int, default=20
         reject any macrocycle with a central cycle that has more than 
         max_num_carbons
-    min_cycle_cc_bond_length: float, default=1.3
-        minimum length to identify cc bonds in the macrocycle
-    max_cycle_cc_bond_length: float, default=1.7
-        maximum length to identify cc bonds in the macrocycle
-    summary_file : str, default="summary.csv"
+    guest_search_radius : float, default=4
+        look for guest atoms within this radius (in angstroms) of the atom 
+        centroid.
+    summary_file : str, default="summary.xlsx"
         write all cycles to this single summary file if there is more than one 
         xyz file specified. 
     output_dir : str, default="."
@@ -148,16 +133,12 @@ def run_all(filename,
                                 overwrite=overwrite)
         # Get macrocycles
         atom_df = get_macrocycles(filename,
-                                  bond_dist=bond_dist,
-                                  aspect_ratio_filter=aspect_ratio_filter,
-                                  oxygen_dist_cutoff=oxygen_dist_cutoff,
                                   min_num_carbons=min_num_carbons,
-                                  max_num_carbons=max_num_carbons,
-                                  min_cycle_cc_bond_length=min_cycle_cc_bond_length,
-                                  max_cycle_cc_bond_length=max_cycle_cc_bond_length)
+                                  max_num_carbons=max_num_carbons)
         
         # Get ellipticities and write to csv
-        ellipticities, pca_vectors = get_ellipticity(atom_df)
+        ellipticities, pca_vectors = get_ellipticity(atom_df,
+                                                     guest_search_radius=guest_search_radius)
         ellipticities.to_excel(excel_file,index=False)
 
         # Plot results 
