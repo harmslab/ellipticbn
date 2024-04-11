@@ -44,7 +44,7 @@ def run_all(filename,
             output_dir=".",
             overwrite=False):
     """
-    Wrapper function that runs a complete ElliptiCbn calculation.
+    Run an ElliptiCbn calculation.
     
     Parameters
     ----------

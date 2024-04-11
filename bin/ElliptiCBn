@@ -3,6 +3,7 @@
 Command line interface for ElliptiCBn. 
 """
 
+import ElliptiCBn
 from ElliptiCBn import run_all
 
 import sys
@@ -74,11 +75,15 @@ def main(argv=None,description=None):
 
         parser.add_argument(f"--{p}",**kwargs)
 
+    parser.add_argument('--version',
+                        action='version',
+                        version=f'{prog} {ElliptiCBn.__version__}')
+
     # Parse args
     args = parser.parse_args(argv)
 
     # Call function with fcn_args
-    ret = fcn(**args.__dict__)
+    _ = fcn(**args.__dict__)
 
 
 if __name__ == "__main__":
