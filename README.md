@@ -1,4 +1,4 @@
-# ElliptiCB*[n]*
+# ElliptiCB[n]
 
 ## Automatically measure the ellipticity of cucurbituril macrocycles
 
@@ -14,7 +14,7 @@ Run the program in the cloud without installing any software.
 
 ### Description
 
-*ElliptiCB*[n]* is a collaboration between the Pluth and Harms labs at the University of Oregon*
+*ElliptiCB[n] is a collaboration between the Pluth and Harms labs at the University of Oregon*
 
 Arman Garcia, Michael Shavlik PhD, Mike Harms PhD, Mike Pluth PhD
 
@@ -22,7 +22,7 @@ A manuscript describing the software is forthcoming.
 
 
 
-#### ElliptiCB*[n]* performs the following steps
+#### ElliptiCB[n] performs the following steps
 
 ![](images/pipeline_image.svg)
 
@@ -44,7 +44,7 @@ A manuscript describing the software is forthcoming.
 
 ### Input
 
-ElliptiCB*[n]* takes molecular structures in [XYZ format](https://en.wikipedia.org/wiki/XYZ_file_format). The first two lines are ignored. We assume the coordinates are in angstroms. XYZ files can be generated from other structure formats using software like [Open Babel](http://openbabel.org). 
+ElliptiCB[n] takes molecular structures in [XYZ format](https://en.wikipedia.org/wiki/XYZ_file_format). The first two lines are ignored. We assume the coordinates are in angstroms. XYZ files can be generated from other structure formats using software like [Open Babel](http://openbabel.org). 
 
 ### Output
 
@@ -76,7 +76,7 @@ A screenshot of the output follows. The actual output of the code is interactive
 
 ### Local installation
 
-ElliptiCB*[n]* can be installed locally and used as a command line tool. 
+ElliptiCB[n] can be installed locally and used as a command line tool. 
 
 **To install using pip**
 
@@ -98,7 +98,7 @@ python -m pip install . -vv -r requirements.txt
 
 ### Run from the command line
 
-ElliptiCB*[n]* takes one or more .xyz files as inputs. Assuming that HUMAR.xyz is in the working directory, running this command:
+ElliptiCB[n] takes one or more .xyz files as inputs. Assuming that HUMAR.xyz is in the working directory, running this command:
 
 ```
 $> ElliptiCBn HUMXAR.xyz
