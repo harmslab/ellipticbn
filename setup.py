@@ -17,9 +17,11 @@ URL = "https://github.com/harmslab/ElliptiCBn"  # temp URL
 EMAIL = "mshavlik@uoregon.edu"
 AUTHOR = "Michael Shavlik"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = "2.0.0"
 
+about = {}
 here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, "ElliptiCBn", '__version__.py')) as f:
+    exec(f.read(),about)
 
 # Import README for description
 with io.open(os.path.join(here,'README.md'),encoding='utf-8') as f:
@@ -33,7 +35,7 @@ package_data = {"":["ElliptiCBn/data/*.csv",
 # Now the part where we do setup
 setup(
     name='ElliptiCBn',
-    version=VERSION,
+    version=about["__version__"],
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
@@ -51,5 +53,6 @@ setup(
                   'Programming Language :: Python :: 3.8',
                   'Programming Language :: Python :: 3.9',
                   'Programming Language :: Python :: 3.10',
-                  'Programming Language :: Python :: 3.11'],
+                  'Programming Language :: Python :: 3.11',
+                  'Programming Language :: Python :: 3.12'],
     zip_safe=False)
