@@ -156,6 +156,10 @@ def get_macrocycles(filename,
     
     print(f'Analyzing {filename}.',flush=True)
 
+    if min_num_carbons >= max_num_carbons:
+        err = f"min_num_carbons ({min_num_carbons}) must be smaller than max_num_carbons ({max_num_carbons})\n"
+        raise ValueError(err)
+
     allowed_atoms = ["C","N","O","H"]
     chno_lines = []
     non_chno_dict = {"atom_type":[],
@@ -604,10 +608,10 @@ def plot_results(atom_df,
                           yaxis_visible=False,
                           zaxis_visible=False)
 
-    # Save html if requested
-    if html_file is not None:
-        print(f"Saving plot to {html_file}",flush=True)
-        fig.write_html(html_file)
+        # Save html if requested
+        if html_file is not None:
+            print(f"Saving plot to {html_file}",flush=True)
+            fig.write_html(html_file)
     
     return fig
 
