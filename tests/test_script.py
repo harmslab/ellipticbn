@@ -11,13 +11,13 @@ def test_script(example_xyz,tmpdir):
     Basic test of the command line script.
     """
 
-    # Update test for windows
-    if platform.system() == "Windows":
-        here = os.path.abspath(os.path.dirname(__file__))
-        script = os.path.realpath(os.path.join(here,"..","bin","ElliptiCBn"))
-        base_cmd = ["python",script]
-    else:
-        base_cmd = ["ElliptiCBn"]
+    # # Update test for windows
+    # if platform.system() == "Windows":
+    #     here = os.path.abspath(os.path.dirname(__file__))
+    #     script = os.path.realpath(os.path.join(here,"..","bin","ElliptiCBn"))
+    #     base_cmd = ["python",script]
+    # else:
+    base_cmd = ["ElliptiCBn"]
 
     cwd = os.getcwd()
     os.chdir(tmpdir)
