@@ -11,6 +11,9 @@ universal = true
 [tool.setuptools.dynamic]
 version = {attr = "ElliptiCBn.__version__.__version__"}
 
+[tool.setuptools.package-data]
+mypkg = ["*.csv","*.txt"]
+
 [project]
 name = "ellipticbn"
 dynamic = ["version"]
