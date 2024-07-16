@@ -56,7 +56,12 @@ def test_script(example_xyz,tmpdir):
     results = subprocess.run(cmd)
     assert results.returncode == 0
     assert os.path.isdir("multi")
-    assert set(os.listdir("multi")) == set(expected)
+
+    # Make sure the right files are spit out (less a temporary file that might
+    # not be deleted)
+    seen = set(os.listdir("multi"))
+    seen = seen - set(["tmp-xyz.xyz"])
+    assert seen == set(expected)
 
     # Should fail -- output exists
     cmd = base_cmd[:]
