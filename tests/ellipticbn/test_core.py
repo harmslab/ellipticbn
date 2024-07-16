@@ -1,10 +1,10 @@
 import pytest
 
-from ElliptiCBn.core import _order_nodes
-from ElliptiCBn.core import calc_ellipticity
-from ElliptiCBn.core import get_macrocycles
-from ElliptiCBn.core import get_ellipticity
-from ElliptiCBn.core import plot_results
+from ellipticbn.core import _order_nodes
+from ellipticbn.core import calc_ellipticity
+from ellipticbn.core import get_macrocycles
+from ellipticbn.core import get_ellipticity
+from ellipticbn.core import plot_results
 
 
 import numpy as np

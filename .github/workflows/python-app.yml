@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and flake8 across
 # platforms and python versions. 
 
-name: ElliptiCBn
+name: ellipticbn
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: install ElliptiCBn
+    - name: install ellipticbn
       run: |
         # platform specific packages
         python -m pip install . pyproject.toml

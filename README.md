@@ -8,7 +8,7 @@
 
 Run the program in the cloud without installing any software. 
 
-<a href="https://githubtocolab.com/harmslab/ElliptiCBn/blob/main/notebooks/ElliptiCBn.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="https://githubtocolab.com/harmslab/ellipticbn/blob/main/notebooks/ellipticbn.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 
 
@@ -83,7 +83,7 @@ ElliptiCB[n] can be installed locally and used as a command line tool.
 On a terminal, run:
 
 ```bash
-pip install ElliptiCBn
+pip install ellipticbn
 ```
 
 **To install from source:**
@@ -91,9 +91,9 @@ pip install ElliptiCBn
 On a terminal, run:
 
 ```bash
-git clone https://github.com/harmslab/ElliptiCBn.git
-cd ElliptiCBn
-python -m pip install . -vv -r requirements.txt
+git clone https://github.com/harmslab/ellipticbn.git
+cd ellipticbn
+python -m pip install . pyproject.toml
 ```
 
 ### Run from the command line
@@ -101,7 +101,7 @@ python -m pip install . -vv -r requirements.txt
 ElliptiCB[n] takes one or more .xyz files as inputs. Assuming that HUMAR.xyz is in the working directory, running this command:
 
 ```
-$> ElliptiCBn HUMXAR.xyz
+$> ellipticbn HUMXAR.xyz
 ```
 
 Would generate the following output:
@@ -126,7 +126,7 @@ It will also generate HUXMAR.xyz.html (the visualization) and HUXMAR.xyz.xlsx (t
 You can also run the program on multiple xyz files:
 
 ```
-$> ElliptiCBn HUMXAR.xyz LAZPIM.xyz
+$> ellipticbn HUMXAR.xyz LAZPIM.xyz
 ```
 
 Would generate the following output:
@@ -169,13 +169,13 @@ In addition to the visualization html and individual ellipiticty files, this cal
 One can also change the parameters used in the calculation. To see the available options, type the following in a terminal:
 
 ```bash
-ElliptiCBn --help
+ellipticbn --help
 ```
 
 As of this writing (version 2.0.1), this gives the following output:
 
 ```
-usage: ElliptiCBn [-h] [--min_num_carbons MIN_NUM_CARBONS]
+usage: ellipticbn [-h] [--min_num_carbons MIN_NUM_CARBONS]
                   [--max_num_carbons MAX_NUM_CARBONS]
                   [--guest_search_radius GUEST_SEARCH_RADIUS]
                   [--summary_file SUMMARY_FILE] [--output_dir OUTPUT_DIR]

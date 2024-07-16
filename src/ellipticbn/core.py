@@ -1,5 +1,5 @@
 """
-Core functions to run ElliptiCBn.
+Core functions to run ellipticbn.
 """
 
 # dependencies
@@ -421,7 +421,7 @@ def plot_results(atom_df,
                  plot_cycles=True,
                  pca_vector_list=None):
     """
-    Plot structures resulting from an ElliptiCBn calculation. 
+    Plot structures resulting from an ellipticbn calculation. 
     
     Parameters
     ----------

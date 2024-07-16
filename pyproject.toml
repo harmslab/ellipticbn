@@ -2,19 +2,16 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["ElliptiCBn"]
-
 [tool.distutils.bdist_wheel]
 universal = true
 
 [tool.setuptools.dynamic]
-version = {attr = "ElliptiCBn.__version__.__version__"}
+version = {attr = "ellipticbn.__version__.__version__"}
 
 [tool.setuptools.package-data]
 "*" = [
-  "ElliptiCBn/data/*.txt",
-  "ElliptiCBn/data/*.csv"
+  "src/ellipticbn/data/*.txt",
+  "src/ellipticbn/data/*.csv"
 ]
 
 [project]
@@ -50,8 +47,15 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/harmslab/ElliptiCBn.git"
-"Bug Tracker" = "https://github.com/harmslab/ElliptiCBn/issues"
+Repository = "https://github.com/harmslab/ellipticbn.git"
+"Bug Tracker" = "https://github.com/harmslab/ellipticbn/issues"
 
 [project.scripts]
-ElliptiCBn = "ElliptiCBn.run_all:main_cli"
+ellipticbn = "ellipticbn.run_all:main_cli"
+
+[project.optional-dependencies]
+test = [
+  "coverage",
+  "flake8",
+  "pytest"
+ ]

@@ -185,7 +185,7 @@ def main_cli(argv=None,description=None):
         argv = sys.argv[1:]
 
     # Get program name
-    prog = "ElliptiCBn"
+    prog = "ellipticbn"
 
     # Get description
     if description is None:

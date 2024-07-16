@@ -1,7 +1,7 @@
 import pytest
 
-from ElliptiCBn.run_all import _file_check
-from ElliptiCBn.run_all import run_all
+from ellipticbn.run_all import _file_check
+from ellipticbn.run_all import run_all
 
 import os
 
