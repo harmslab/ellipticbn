@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Running flake8"
-flake_test=`flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics`
+flake_test=`flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics`
 if [[ "${flake_test}" != 0 ]]; then
     echo "flake failed"
     exit

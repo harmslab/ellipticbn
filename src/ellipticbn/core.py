@@ -1,5 +1,5 @@
 """
-Core functions to run ElliptiCBn.
+Core functions to run ellipticbn.
 """
 
 # dependencies
@@ -196,8 +196,6 @@ def get_macrocycles(filename,
     univ = mda.Universe("tmp-xyz.xyz",
                         guess_bonds=True)
 
-    os.remove("tmp-xyz.xyz")
-
     out = {"atom_index":[],
            "atom_type":[],
            "x":[],
@@ -228,6 +226,13 @@ def get_macrocycles(filename,
         out["z"].append(z)
         out["neighbors"].append(neighbors)
         out["neigh_pattern"].append("".join(neighbor_elem))
+
+    # Try to delete temporary file. May fail on windows because mdanalysis 
+    # keeps file pointer open and locks file
+    try:
+        os.remove("tmp-xyz.xyz")
+    except PermissionError:
+        pass
 
     atom_df = pd.DataFrame(out)
     molecules = nx.strongly_connected_components(G)
@@ -416,7 +421,7 @@ def plot_results(atom_df,
                  plot_cycles=True,
                  pca_vector_list=None):
     """
-    Plot structures resulting from an ElliptiCBn calculation. 
+    Plot structures resulting from an ellipticbn calculation. 
     
     Parameters
     ----------

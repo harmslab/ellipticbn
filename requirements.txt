@@ -1,9 +1,0 @@
-numpy>=1.10
-networkx
-scikit-learn
-plotly
-pandas 
-matplotlib
-xlsxwriter
-mdanalysis
-scipy

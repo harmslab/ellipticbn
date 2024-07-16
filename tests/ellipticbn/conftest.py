@@ -76,6 +76,12 @@ def get_files(base_dir):
             new_key.append("")
             output["/".join(new_key)] = os.path.join(root,this_dir)
 
+    # make sure output is sorted stably
+    for k in output:
+        new_output = list(output[k])
+        new_output.sort()
+        output[k] = new_output
+
     return output
 
 @pytest.fixture(scope="module")

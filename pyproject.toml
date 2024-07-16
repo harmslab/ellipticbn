@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[tool.setuptools.dynamic]
+version = {attr = "ellipticbn.__version__.__version__"}
+
+[tool.setuptools.package-data]
+"*" = [
+  "src/ellipticbn/data/*.txt",
+  "src/ellipticbn/data/*.csv"
+]
+
+[project]
+name = "ellipticbn"
+dynamic = ["version"]
+dependencies = [
+  "numpy>=1.10",
+  "networkx",
+  "scikit-learn",
+  "plotly",
+  "pandas",
+  "matplotlib",
+  "xlsxwriter",
+  "mdanalysis",
+  "scipy"
+]
+
+requires-python = ">=3.9"
+authors = [
+  {name = "Michael Shavlik", email = "mshavlik@uoregon.edu"},
+  {name = "Mike Harms", email = "harms@uoregon.edu"},
+]
+maintainers = [
+  {name = "Mike Harms", email = "harms@uoregon.edu"}
+]
+description = "Automatically measure the ellipticity of cucurbituril macrocycles!"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["macrocycle", "cucurbituril", "ellipticity", "chemistry", "geometry", "host", "guest"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Repository = "https://github.com/harmslab/ellipticbn.git"
+"Bug Tracker" = "https://github.com/harmslab/ellipticbn/issues"
+
+[project.scripts]
+ellipticbn = "ellipticbn.run_all:main_cli"
+
+[project.optional-dependencies]
+test = [
+  "coverage",
+  "flake8",
+  "pytest"
+ ]

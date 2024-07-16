@@ -1,10 +1,10 @@
 import pytest
 
-from ElliptiCBn.core import _order_nodes
-from ElliptiCBn.core import calc_ellipticity
-from ElliptiCBn.core import get_macrocycles
-from ElliptiCBn.core import get_ellipticity
-from ElliptiCBn.core import plot_results
+from ellipticbn.core import _order_nodes
+from ellipticbn.core import calc_ellipticity
+from ellipticbn.core import get_macrocycles
+from ellipticbn.core import get_ellipticity
+from ellipticbn.core import plot_results
 
 
 import numpy as np
@@ -69,8 +69,8 @@ def test_calc_ellipticity():
 def test_get_macrocycles(example_xyz):
     
 
-    counter_expect = [np.array([0,np.nan]),
-                      np.array([0,1,np.nan])]
+    counter_expect = [np.array([0,1,np.nan]),
+                      np.array([0,np.nan]),]
 
     for counter, xyz in enumerate(example_xyz["*.xyz"]):
 
@@ -112,7 +112,7 @@ def test_get_ellipticity(example_xyz,tmpdir):
     cwd = os.getcwd()
     os.chdir(tmpdir)
 
-    counter_expect = [1,2]
+    counter_expect = [2,1]
 
     for counter, xyz in enumerate(example_xyz["*.xyz"]):
         atom_df = get_macrocycles(xyz)
