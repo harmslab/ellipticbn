@@ -13,9 +13,9 @@ from setuptools import setup
 #Package meta-data
 DESCRIPTION= \
 """ Python package for analyzing ellipticity in CBn crystal structures. """
-URL = "https://github.com/harmslab/ElliptiCBn"  # temp URL
-EMAIL = "mshavlik@uoregon.edu"
-AUTHOR = "Michael Shavlik"
+URL = "https://github.com/harmslab/ElliptiCBn" 
+EMAIL = "harms@uoregon.edu; mshavlik@uoregon.edu"
+AUTHOR = "Michael J. Harms; Michael Shavlik"
 REQUIRES_PYTHON = ">=3.7.0"
 
 about = {}
