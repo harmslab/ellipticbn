@@ -12,7 +12,7 @@ def test_script(example_xyz,tmpdir):
     """
 
     # Update test for windows
-    if platform.architecture == "Windows":
+    if platform.system() == "Windows":
         here = os.path.abspath(os.path.dirname(__file__))
         script = os.path.realpath(os.path.join(here,"..","bin","ElliptiCBn"))
         base_cmd = ["python",script]
