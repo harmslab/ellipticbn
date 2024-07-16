@@ -3,11 +3,21 @@ import pytest
 
 import os
 import subprocess
+import platform
+
 
 def test_script(example_xyz,tmpdir):
     """
     Basic test of the command line script.
     """
+
+    # Update test for windows
+    if platform.architecture == "Windows":
+        here = os.path.abspath(os.path.dirname(__file__))
+        script = os.path.realpath(os.path.join(here,"..","bin","ElliptiCBn"))
+        base_cmd = ["python",script]
+    else:
+        base_cmd = ["ElliptiCBn"]
 
     cwd = os.getcwd()
     os.chdir(tmpdir)
@@ -21,7 +31,8 @@ def test_script(example_xyz,tmpdir):
         expected.append(out_html)
         expected.append(out_xlsx)
 
-        cmd = ["ElliptiCBn",xyz]
+        cmd = base_cmd[:]
+        cmd.append(xyz)
         results = subprocess.run(cmd)
         assert results.returncode == 0
         assert os.path.isfile(out_html)
@@ -30,7 +41,8 @@ def test_script(example_xyz,tmpdir):
         os.remove(out_html)
         os.remove(out_xlsx)
 
-    cmd = ["ElliptiCBn",*example_xyz["*.xyz"]]
+    cmd = base_cmd[:]
+    cmd.extend(example_xyz["*.xyz"])
     results = subprocess.run(cmd)
     assert results.returncode == 0
 
@@ -38,7 +50,8 @@ def test_script(example_xyz,tmpdir):
     assert set(os.listdir(".")) == set(expected)
     
     # make sure we can write to a directory
-    cmd = ["ElliptiCBn",*example_xyz["*.xyz"]]
+    cmd = base_cmd[:]
+    cmd.extend(example_xyz["*.xyz"])
     cmd.extend(["--output_dir","multi"])
     results = subprocess.run(cmd)
     assert results.returncode == 0
@@ -46,7 +59,8 @@ def test_script(example_xyz,tmpdir):
     assert set(os.listdir("multi")) == set(expected)
 
     # Should fail -- output exists
-    cmd = ["ElliptiCBn",*example_xyz["*.xyz"]]
+    cmd = base_cmd[:]
+    cmd.extend(example_xyz["*.xyz"])
     cmd.extend(["--output_dir","multi"])
     results = subprocess.run(cmd)
     assert results.returncode == 1
@@ -56,21 +70,19 @@ def test_script(example_xyz,tmpdir):
     results = subprocess.run(cmd)
     assert results.returncode == 0
     
-
-    cmd = ["ElliptiCBn",example_xyz["*.xyz"][0]]
+    cmd = base_cmd[:]
+    cmd.append(example_xyz["*.xyz"][0])
     cmd.extend(["--min_num_carbons","1000"])
     cmd.extend(["--max_num_carbons","20"])
     results = subprocess.run(cmd)
     assert results.returncode == 1
 
-    cmd = ["ElliptiCBn",example_xyz["*.xyz"][0]]
+    cmd = base_cmd[:]
+    cmd.append(example_xyz["*.xyz"][0])
     cmd.extend(["--min_num_carbons","20"])
     cmd.extend(["--max_num_carbons","2"])
     results = subprocess.run(cmd)
     assert results.returncode == 1
-
-
-
 
     os.chdir(cwd)
 
