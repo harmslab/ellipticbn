@@ -12,7 +12,7 @@ universal = true
 version = {attr = "ElliptiCBn.__version__.__version__"}
 
 [tool.setuptools.package-data]
-mypkg = ["*.csv","*.txt"]
+include = ["data/*.*"]
 
 [project]
 name = "ellipticbn"
