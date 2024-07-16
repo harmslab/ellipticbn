@@ -7,6 +7,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["ElliptiCBn"]
 
+[tool.distutils.bdist_wheel]
+universal = true
+
 [project]
 name = "ellipticbn"
 dynamic = ["version"]

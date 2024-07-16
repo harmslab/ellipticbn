@@ -28,7 +28,7 @@ jobs:
     - name: install ElliptiCBn
       run: |
         # platform specific packages
-        python -m pip install . -vv -r requirements.txt
+        python -m pip install . -vv pyproject.toml
 
     - name: run flake8
       run: |
