@@ -1,0 +1,3 @@
+include ElliptiCBn/data/
+include ElliptiCBn/data/*.csv
+include ElliptiCBn/data/*.txt

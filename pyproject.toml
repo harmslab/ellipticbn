@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["ElliptiCBn"]
-include-package-data = true
 
 [tool.distutils.bdist_wheel]
 universal = true
@@ -13,7 +12,10 @@ universal = true
 version = {attr = "ElliptiCBn.__version__.__version__"}
 
 [tool.setuptools.package-data]
-ElliptiCBn = ["*.txt","*.csv"]
+"*" = [
+  "ElliptiCBn/data/*.txt",
+  "ElliptiCBn/data/*.csv"
+]
 
 [project]
 name = "ellipticbn"
