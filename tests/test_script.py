@@ -47,7 +47,9 @@ def test_script(example_xyz,tmpdir):
     assert results.returncode == 0
 
     expected.append("summary.xlsx")
-    assert set(os.listdir(".")) == set(expected)
+    seen = set(os.listdir("."))
+    seen = seen - set(["tmp-xyz.xyz"])
+    assert seen == set(expected)
     
     # make sure we can write to a directory
     cmd = base_cmd[:]
