@@ -4,10 +4,16 @@ Wrapper function that runs a complete ElliptiCbn calculation.
 from .core import plot_results
 from .core import get_macrocycles
 from .core import get_ellipticity
+from .__version__ import __version__
 
 import pandas as pd
 
 import os
+import argparse
+import inspect
+import re
+import sys
+
 
 def _file_check(some_file,
                 output_dir=".",
@@ -165,3 +171,77 @@ def run_all(filename,
         return None
     
     return fig
+
+def main_cli(argv=None,description=None):
+    """
+    Run ellipticbn, building command line arguments based on docstring and
+    argument datatypes. 
+    """
+   
+    fcn = run_all
+    optional_arg_types = {}
+
+    if argv is None:
+        argv = sys.argv[1:]
+
+    # Get program name
+    prog = "ElliptiCBn"
+
+    # Get description
+    if description is None:
+        description = dict(inspect.getmembers(fcn))["__doc__"]
+    description = re.sub(":code:","",description)
+
+    # Build parser
+    parser = argparse.ArgumentParser(prog=prog,
+                                     description=description,
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    # Build parser arguments using signature of fcn
+    param = inspect.signature(fcn).parameters
+    for p in param:
+
+        if p == "filename":
+            parser.add_argument(p,nargs="+")
+            continue
+
+        # If no default specified, make required and move on.
+        if param[p].default is param[p].empty:
+            parser.add_argument(p)
+            continue
+
+        # For default is None args, parse as optional_arg_types or str
+        if param[p].default is None:
+            try:
+                arg_type = optional_arg_types[p]
+            except KeyError:
+                arg_type = str
+
+        # Otherwise, just grab the type
+        else:
+            arg_type = type(param[p].default)
+
+        # bool
+        kwargs = {}
+        if arg_type is bool:
+            if param[p].default is True:
+                kwargs["action"] = "store_false"
+            else:
+                kwargs["action"] = "store_true"
+
+        # any other argument type
+        else:
+            kwargs["type"] = arg_type
+            kwargs["default"] = param[p].default
+
+        parser.add_argument(f"--{p}",**kwargs)
+
+    parser.add_argument('--version',
+                        action='version',
+                        version=f'{prog} {__version__}')
+
+    # Parse args
+    args = parser.parse_args(argv)
+
+    # Call function with fcn_args
+    _ = fcn(**args.__dict__)
