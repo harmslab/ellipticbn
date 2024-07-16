@@ -16,7 +16,7 @@ DESCRIPTION= \
 URL = "https://github.com/harmslab/ElliptiCBn" 
 EMAIL = "harms@uoregon.edu; mshavlik@uoregon.edu"
 AUTHOR = "Michael J. Harms; Michael Shavlik"
-REQUIRES_PYTHON = ">=3.7.0"
+REQUIRES_PYTHON = ">=3.9.0"
 
 about = {}
 here = os.path.abspath(os.path.dirname(__file__))
@@ -49,8 +49,6 @@ setup(
     keywords='CBn; cucurbituril; host; guest; chemistry; molecule; science; analysis; crystal structure',
     classifiers = ["Development Status :: 3 - Alpha",
                   'Intended Audience :: Science/Research',
-                  'Programming Language :: Python :: 3.7'
-                  'Programming Language :: Python :: 3.8',
                   'Programming Language :: Python :: 3.9',
                   'Programming Language :: Python :: 3.10',
                   'Programming Language :: Python :: 3.11',
